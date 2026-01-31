@@ -5,6 +5,7 @@ import com.example.todo.web.assembler.TagResponseAssembler;
 import com.example.todo.web.dto.TagCreateRequest;
 import com.example.todo.web.dto.TagUpdateRequest;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
@@ -21,15 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/tags")
+@RequiredArgsConstructor
 public class TagController {
 
     private final TagService tagService;
     private final TagResponseAssembler tagResponseAssembler;
-
-    public TagController(TagService tagService, TagResponseAssembler tagResponseAssembler) {
-        this.tagService = tagService;
-        this.tagResponseAssembler = tagResponseAssembler;
-    }
 
     @GetMapping
     public CollectionModel<EntityModel<?>> listTags() {
@@ -43,13 +40,13 @@ public class TagController {
 
     @PostMapping
     public ResponseEntity<EntityModel<?>> createTag(@Valid @RequestBody TagCreateRequest request) {
-        EntityModel<?> model = tagResponseAssembler.toModel(tagService.create(request.getName()));
+        EntityModel<?> model = tagResponseAssembler.toModel(tagService.create(request.name()));
         return ResponseEntity.status(HttpStatus.CREATED).body(model);
     }
 
     @PutMapping("/{id}")
     public EntityModel<?> updateTag(@PathVariable Long id, @Valid @RequestBody TagUpdateRequest request) {
-        return tagResponseAssembler.toModel(tagService.update(id, request.getName()));
+        return tagResponseAssembler.toModel(tagService.update(id, request.name()));
     }
 
     @DeleteMapping("/{id}")

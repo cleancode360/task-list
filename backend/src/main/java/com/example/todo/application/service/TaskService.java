@@ -6,19 +6,16 @@ import com.example.todo.domain.model.Task;
 import com.example.todo.infrastructure.repository.TagRepository;
 import com.example.todo.infrastructure.repository.TaskRepository;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class TaskService {
 
     private final TaskRepository taskRepository;
     private final TagRepository tagRepository;
-
-    public TaskService(TaskRepository taskRepository, TagRepository tagRepository) {
-        this.taskRepository = taskRepository;
-        this.tagRepository = tagRepository;
-    }
 
     @Transactional(readOnly = true)
     public List<Task> getAll() {

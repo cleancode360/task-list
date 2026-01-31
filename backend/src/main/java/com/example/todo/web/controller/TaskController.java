@@ -6,6 +6,7 @@ import com.example.todo.web.assembler.TaskSummaryAssembler;
 import com.example.todo.web.dto.TaskCreateRequest;
 import com.example.todo.web.dto.TaskUpdateRequest;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
@@ -21,19 +22,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/tasks")
+@RequiredArgsConstructor
 public class TaskController {
 
     private final TaskService taskService;
     private final TaskSummaryAssembler taskSummaryAssembler;
     private final TaskResponseAssembler taskResponseAssembler;
-
-    public TaskController(TaskService taskService,
-                          TaskSummaryAssembler taskSummaryAssembler,
-                          TaskResponseAssembler taskResponseAssembler) {
-        this.taskService = taskService;
-        this.taskSummaryAssembler = taskSummaryAssembler;
-        this.taskResponseAssembler = taskResponseAssembler;
-    }
 
     @GetMapping
     public CollectionModel<EntityModel<?>> listTasks() {
@@ -48,7 +42,7 @@ public class TaskController {
     @PostMapping
     public ResponseEntity<EntityModel<?>> createTask(@Valid @RequestBody TaskCreateRequest request) {
         EntityModel<?> model = taskResponseAssembler.toModel(
-            taskService.create(request.getTitle(), request.getDescription(), request.getTagIds())
+            taskService.create(request.title(), request.description(), request.tagIds())
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(model);
     }
@@ -56,7 +50,7 @@ public class TaskController {
     @PutMapping("/{id}")
     public EntityModel<?> updateTask(@PathVariable Long id, @Valid @RequestBody TaskUpdateRequest request) {
         return taskResponseAssembler.toModel(
-            taskService.update(id, request.getTitle(), request.getDescription(), request.getCompleted(), request.getTagIds())
+            taskService.update(id, request.title(), request.description(), request.completed(), request.tagIds())
         );
     }
 

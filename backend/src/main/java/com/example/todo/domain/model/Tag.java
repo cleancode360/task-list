@@ -10,9 +10,15 @@ import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "tags")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Tag {
 
     @Id
@@ -25,31 +31,8 @@ public class Tag {
     @ManyToMany(mappedBy = "tags")
     private Set<Task> tasks = new HashSet<>();
 
-    public Tag() {
-    }
-
     public Tag(String name) {
         this.name = name;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Set<Task> getTasks() {
-        return tasks;
-    }
-
-    public void setTasks(Set<Task> tasks) {
-        this.tasks = tasks;
     }
 
     @Override
