@@ -4,6 +4,7 @@ import com.example.todo.application.service.TaskService;
 import com.example.todo.web.assembler.TaskResponseAssembler;
 import com.example.todo.web.assembler.TaskSummaryAssembler;
 import com.example.todo.web.dto.TaskCreateRequest;
+import com.example.todo.web.dto.TaskSummaryResponse;
 import com.example.todo.web.dto.TaskUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ public class TaskController {
     private final TaskResponseAssembler taskResponseAssembler;
 
     @GetMapping
-    public CollectionModel<EntityModel<?>> listTasks() {
+    public CollectionModel<EntityModel<TaskSummaryResponse>> listTasks() {
         return taskSummaryAssembler.toCollectionModel(taskService.getAll());
     }
 
@@ -70,8 +71,8 @@ public class TaskController {
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteTask(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
         taskService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

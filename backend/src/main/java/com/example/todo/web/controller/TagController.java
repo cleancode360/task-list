@@ -3,6 +3,7 @@ package com.example.todo.web.controller;
 import com.example.todo.application.service.TagService;
 import com.example.todo.web.assembler.TagResponseAssembler;
 import com.example.todo.web.dto.TagCreateRequest;
+import com.example.todo.web.dto.TagResponse;
 import com.example.todo.web.dto.TagUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -29,7 +29,7 @@ public class TagController {
     private final TagResponseAssembler tagResponseAssembler;
 
     @GetMapping
-    public CollectionModel<EntityModel<?>> listTags() {
+    public CollectionModel<EntityModel<TagResponse>> listTags() {
         return tagResponseAssembler.toCollectionModel(tagService.getAll());
     }
 
@@ -50,8 +50,8 @@ public class TagController {
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteTag(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteTag(@PathVariable Long id) {
         tagService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
