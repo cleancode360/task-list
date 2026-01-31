@@ -1,0 +1,24 @@
+.DS_Store
+.idea/
+.vscode/
+
+# Backend
+backend/target/
+backend/.classpath
+backend/.project
+backend/.settings/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS
+Thumbs.db
