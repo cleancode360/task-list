@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - "backend/**"
-      - "k8s/**"
+      - "backend/k8s/**"
       - ".github/workflows/deploy-backend.yml"
 
 permissions:

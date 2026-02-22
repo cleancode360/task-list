@@ -13,7 +13,7 @@ Full-stack to-do list app with a Spring Boot HATEOAS API, React + Bootstrap UI, 
 - `backend/`: Spring Boot API
 - `frontend/`: React application
 - `infra/`: Terraform infrastructure for AWS
-- `k8s/`: Kubernetes manifests for backend workload
+- `backend/k8s/`: Kubernetes manifests for backend workload
 - `.github/workflows/deploy-backend.yml`: CI/CD for backend image rollout to EKS
 
 ## Local development
@@ -100,18 +100,18 @@ Terraform provisions:
 ## Kubernetes deployment workflow
 
 1. Update placeholders before apply:
-- `k8s/configmap.yaml`: replace `REPLACE_RDS_ENDPOINT` and `REPLACE_AMPLIFY_DOMAIN`
-- `k8s/deployment.yaml`: replace `REPLACE_ECR_URL`
+- `backend/k8s/configmap.yaml`: replace `REPLACE_RDS_ENDPOINT` and `REPLACE_AMPLIFY_DOMAIN`
+- `backend/k8s/deployment.yaml`: replace `REPLACE_ECR_URL`
 
 2. Apply manifests:
 ```bash
-kubectl apply -f k8s/namespace.yaml
-kubectl apply -f k8s/aws-logging.yaml
-kubectl apply -f k8s/configmap.yaml
-kubectl apply -f k8s/external-secret.yaml
-kubectl apply -f k8s/deployment.yaml
-kubectl apply -f k8s/service.yaml
-kubectl apply -f k8s/ingress.yaml
+kubectl apply -f backend/k8s/namespace.yaml
+kubectl apply -f backend/k8s/aws-logging.yaml
+kubectl apply -f backend/k8s/configmap.yaml
+kubectl apply -f backend/k8s/external-secret.yaml
+kubectl apply -f backend/k8s/deployment.yaml
+kubectl apply -f backend/k8s/service.yaml
+kubectl apply -f backend/k8s/ingress.yaml
 ```
 
 3. Check rollout:
@@ -123,7 +123,7 @@ kubectl rollout status deployment/todo-backend -n todo-app
 ## Backend monitoring and health
 
 ### CloudWatch Logs
-- Fargate log routing is configured by `k8s/aws-logging.yaml`
+- Fargate log routing is configured by `backend/k8s/aws-logging.yaml`
 - Logs are sent to `/eks/todo-app`
 
 Useful commands:
@@ -133,7 +133,7 @@ kubectl logs -f deployment/todo-backend -n todo-app
 ```
 
 ### Liveness and readiness probes
-Configured in `k8s/deployment.yaml` and backed by Spring Actuator:
+Configured in `backend/k8s/deployment.yaml` and backed by Spring Actuator:
 - `/actuator/health/liveness`
 - `/actuator/health/readiness`
 
@@ -152,7 +152,7 @@ kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/late
 
 Workflow: `.github/workflows/deploy-backend.yml`
 
-On push to `main` (`backend/**` or `k8s/**` changes), pipeline will:
+On push to `main` (`backend/**` or `backend/k8s/**` changes), pipeline will:
 1. Build backend JAR
 2. Build and push Docker image to ECR
 3. Update kubeconfig for EKS
