@@ -36,9 +36,6 @@ jobs:
         distribution: "temurin"
         cache: maven
 
-      - name: Build backend jar
-      run: mvn -f backend/pom.xml -DskipTests package
-
       - name: Configure AWS credentials (OIDC)
       uses: aws-actions/configure-aws-credentials@v4
       with:
