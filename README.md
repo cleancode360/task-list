@@ -15,7 +15,6 @@ Full-stack to-do list app with a Spring Boot HATEOAS API, React + Bootstrap UI, 
 - `infra/`: Terraform infrastructure for AWS
 - `k8s/`: Kubernetes manifests for backend workload
 - `.github/workflows/deploy-backend.yml`: CI/CD for backend image rollout to EKS
-- `amplify.yml`: Amplify build spec for frontend
 
 ## Local development
 
@@ -170,7 +169,7 @@ Set these repository variables/secrets:
 ## Amplify frontend hosting
 
 - Amplify app is provisioned via Terraform (`infra/amplify.tf`)
-- Build instructions are in `amplify.yml`
+- Build instructions are defined inline in Terraform (`build_spec` in `infra/amplify.tf`)
 - Set `VITE_API_BASE_URL` in Amplify environment variables to your backend ALB URL
 
 ## Auth
