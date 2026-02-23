@@ -152,9 +152,8 @@ kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/late
 
 Workflow: `.github/workflows/deploy-backend.yml`
 
-On push to `main` (`backend/**` or `backend/k8s/**` changes), pipeline will:
-1. Build backend JAR
-2. Build and push Docker image to ECR
+On push to `main` (`backend/**` changes), pipeline will:
+1. Build and push Docker image to ECR
 3. Update kubeconfig for EKS
 4. Roll out new image to deployment `todo-backend`
 
