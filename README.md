@@ -65,23 +65,28 @@ Install and configure:
 cd infra
 ```
 
-2. Create a `terraform.tfvars` file:
+2. Create a local `terraform.tfvars` file (non-sensitive values):
 ```hcl
 aws_region         = "us-east-1"
 project_name       = "todo"
 environment        = "dev"
 github_repository  = "your-org/your-repo"
-github_oauth_token = "ghp_xxx"
 db_name            = "todo"
 db_username        = "todo"
-db_password        = "change-me"
 app_username       = "admin"
-app_password       = "change-me"
 frontend_branch    = "main"
+backend_image_tag  = "latest"
 backend_public_url = ""
 ```
 
-3. Apply infrastructure:
+3. Provide sensitive values via environment variables:
+```bash
+export TF_VAR_github_oauth_token="ghp_xxx"
+export TF_VAR_db_password="change-me"
+export TF_VAR_app_password="change-me"
+```
+
+4. Apply infrastructure:
 ```bash
 terraform init
 terraform plan
@@ -150,7 +155,9 @@ kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/late
 
 ## GitHub Actions CI/CD
 
-Workflow: `.github/workflows/deploy-backend.yml`
+Workflows:
+- `.github/workflows/deploy-backend.yml` (backend image build + rollout)
+- `.github/workflows/deploy-infra.yml` (Terraform plan/apply)
 
 On push to `main` (`backend/**` changes), pipeline will:
 1. Build and push Docker image to ECR
@@ -162,8 +169,14 @@ Set these repository variables/secrets:
   - `AWS_REGION`
   - `EKS_CLUSTER_NAME`
   - `ECR_REPOSITORY`
+  - `TF_VAR_GITHUB_REPOSITORY`
+  - `TF_VAR_DB_USERNAME`
+  - `TF_VAR_APP_USERNAME`
 - Secret:
   - `AWS_GITHUB_ACTIONS_ROLE_ARN`
+  - `TF_VAR_GITHUB_OAUTH_TOKEN`
+  - `TF_VAR_DB_PASSWORD`
+  - `TF_VAR_APP_PASSWORD`
 
 ## Amplify frontend hosting
 

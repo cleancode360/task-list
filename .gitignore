@@ -22,3 +22,8 @@ pnpm-debug.log*
 
 # OS
 Thumbs.db
+
+# Terraform
+infra/.terraform/
+infra/*.tfstate
+infra/*.tfstate.*
