@@ -8,6 +8,5 @@ db_username = "todo"
 
 app_username = "admin"
 
-frontend_branch    = "master"
 backend_image_tag  = "latest"
 backend_public_url = ""
