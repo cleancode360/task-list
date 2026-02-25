@@ -23,6 +23,11 @@ output "secrets_manager_arn" {
   value       = aws_secretsmanager_secret.backend.arn
 }
 
+output "amplify_app_id" {
+  description = "Amplify app ID used by the frontend deploy workflow."
+  value       = aws_amplify_app.frontend.id
+}
+
 output "amplify_default_domain" {
   description = "Amplify hosted frontend domain."
   value       = aws_amplify_app.frontend.default_domain

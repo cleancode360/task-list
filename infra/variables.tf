@@ -60,7 +60,7 @@ variable "app_password" {
 variable "frontend_branch" {
   description = "Git branch tracked by Amplify."
   type        = string
-  default     = "main"
+  default     = "master"
 }
 
 variable "backend_image_tag" {

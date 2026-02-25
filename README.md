@@ -15,6 +15,8 @@ Full-stack to-do list app with a Spring Boot HATEOAS API, React + Bootstrap UI, 
 - `infra/`: Terraform infrastructure for AWS
 - `backend/k8s/`: Kubernetes manifests for backend workload
 - `.github/workflows/deploy-backend.yml`: CI/CD for backend image rollout to EKS
+- `.github/workflows/deploy-frontend.yml`: CI/CD for frontend build + deploy to Amplify
+- `.github/workflows/deploy-infra.yml`: CI/CD for Terraform plan/apply
 
 ## Local development
 
@@ -74,7 +76,7 @@ github_repository  = "your-org/your-repo"
 db_name            = "todo"
 db_username        = "todo"
 app_username       = "admin"
-frontend_branch    = "main"
+frontend_branch    = "master"
 backend_image_tag  = "latest"
 backend_public_url = ""
 ```
@@ -157,22 +159,26 @@ kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/late
 
 Workflows:
 - `.github/workflows/deploy-backend.yml` (backend image build + rollout)
+- `.github/workflows/deploy-frontend.yml` (frontend build + Amplify deploy)
 - `.github/workflows/deploy-infra.yml` (Terraform plan/apply)
 
-On push to `main` (`backend/**` changes), pipeline will:
-1. Build and push Docker image to ECR
-3. Update kubeconfig for EKS
-4. Roll out new image to deployment `todo-backend`
+On push to `master`:
+- `backend/**` changes: build and push Docker image to ECR, update kubeconfig, roll out new image
+- `frontend/**` changes: build frontend with Vite, upload artifacts to Amplify
+- `infra/**` changes: run Terraform plan and apply
 
 Set these repository variables/secrets:
 - Variables:
   - `AWS_REGION`
   - `EKS_CLUSTER_NAME`
   - `ECR_REPOSITORY`
+  - `AMPLIFY_APP_ID`
+  - `AMPLIFY_BRANCH_NAME`
+  - `BACKEND_PUBLIC_URL`
   - `TF_VAR_GITHUB_REPOSITORY`
   - `TF_VAR_DB_USERNAME`
   - `TF_VAR_APP_USERNAME`
-- Secret:
+- Secrets:
   - `AWS_GITHUB_ACTIONS_ROLE_ARN`
   - `TF_VAR_GITHUB_OAUTH_TOKEN`
   - `TF_VAR_DB_PASSWORD`
@@ -180,9 +186,10 @@ Set these repository variables/secrets:
 
 ## Amplify frontend hosting
 
-- Amplify app is provisioned via Terraform (`infra/amplify.tf`)
-- Build instructions are defined inline in Terraform (`build_spec` in `infra/amplify.tf`)
-- Set `VITE_API_BASE_URL` in Amplify environment variables to your backend ALB URL
+- Amplify app is provisioned via Terraform (`infra/amplify.tf`) as a hosting-only service
+- Frontend is built by GitHub Actions (`deploy-frontend.yml`) and deployed to Amplify via the AWS CLI
+- `VITE_API_BASE_URL` is injected at build time from the `BACKEND_PUBLIC_URL` GitHub Variable
+- After `terraform apply`, copy the `amplify_app_id` output into your GitHub Variable `AMPLIFY_APP_ID`
 
 ## Auth
 The API is protected with HTTP Basic auth. The UI prompts for username/password and uses those credentials for API calls.
