@@ -178,7 +178,6 @@ Set these repository variables/secrets:
   - `TF_VAR_GITHUB_REPOSITORY`
   - `TF_VAR_DB_USERNAME`
   - `TF_VAR_APP_USERNAME`
-  - `TF_VAR_FRONTEND_BRANCH`
 - Secrets:
   - `AWS_GITHUB_ACTIONS_ROLE_ARN`
   - `TF_VAR_GITHUB_OAUTH_TOKEN`
