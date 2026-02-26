@@ -21,12 +21,6 @@ variable "github_repository" {
   type        = string
 }
 
-variable "github_oauth_token" {
-  description = "GitHub OAuth token for Amplify connection."
-  type        = string
-  sensitive   = true
-}
-
 variable "db_name" {
   description = "PostgreSQL database name."
   type        = string

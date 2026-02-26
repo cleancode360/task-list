@@ -83,7 +83,6 @@ backend_public_url = ""
 
 3. Provide sensitive values via environment variables:
 ```bash
-export TF_VAR_github_oauth_token="ghp_xxx"
 export TF_VAR_db_password="change-me"
 export TF_VAR_app_password="change-me"
 ```
@@ -180,7 +179,6 @@ Set these repository variables/secrets:
   - `TF_VAR_APP_USERNAME`
 - Secrets:
   - `AWS_GITHUB_ACTIONS_ROLE_ARN`
-  - `TF_VAR_GITHUB_OAUTH_TOKEN`
   - `TF_VAR_DB_PASSWORD`
   - `TF_VAR_APP_PASSWORD`
 
