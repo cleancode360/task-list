@@ -101,3 +101,29 @@ resource "aws_iam_role_policy_attachment" "github_actions_amplify" {
   role       = aws_iam_role.github_actions.name
   policy_arn = aws_iam_policy.github_actions_amplify_deploy.arn
 }
+
+resource "aws_iam_policy" "github_actions_infra_read" {
+  name        = "${local.name_prefix}-github-actions-infra-read"
+  description = "Allow GitHub Actions to query RDS and Amplify for deploy-time config resolution"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["rds:DescribeDBInstances"]
+        Resource = module.rds.db_instance_arn
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["amplify:GetApp"]
+        Resource = aws_amplify_app.frontend.arn
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "github_actions_infra_read" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.github_actions_infra_read.arn
+}
