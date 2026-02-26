@@ -38,34 +38,30 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push Docker image
+      - name: Build and push Docker image, resolve infrastructure values
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
-      run: |
-        docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" backend
-        docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-        echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> "$GITHUB_ENV"
-
-      - name: Configure kubectl
-      run: aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME" --region "$AWS_REGION"
-
-      - name: Resolve infrastructure values
-      env:
         RDS_DB_IDENTIFIER: ${{ vars.RDS_DB_IDENTIFIER }}
         AMPLIFY_APP_ID: ${{ vars.AMPLIFY_APP_ID }}
       run: |
+        docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" backend
+        docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+        IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         RDS_ENDPOINT=$(aws rds describe-db-instances \
           --db-instance-identifier "$RDS_DB_IDENTIFIER" \
           --query "DBInstances[0].Endpoint.Address" --output text)
         AMPLIFY_DOMAIN=$(aws amplify get-app \
           --app-id "$AMPLIFY_APP_ID" \
           --query "app.defaultDomain" --output text)
+
+        sed -i "s|#{IMAGE_URI}#|$IMAGE_URI|g" backend/k8s/deployment.yaml
         sed -i "s|#{RDS_ENDPOINT}#|$RDS_ENDPOINT|g" backend/k8s/configmap.yaml
         sed -i "s|#{AMPLIFY_DOMAIN}#|$AMPLIFY_DOMAIN|g" backend/k8s/configmap.yaml
 
       - name: Apply K8s manifests
       run: |
-        sed -i "s|#{IMAGE_URI}#|$IMAGE_URI|g" backend/k8s/deployment.yaml
+        aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME" --region "$AWS_REGION"
         kubectl apply -f backend/k8s/ -n "$K8S_NAMESPACE"
         kubectl rollout status deployment/"$DEPLOYMENT_NAME" -n "$K8S_NAMESPACE" --timeout=180s
