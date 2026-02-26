@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: REPLACE_ECR_URL/todo-backend:latest
+          image: #{IMAGE_URI}#
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

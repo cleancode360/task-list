@@ -50,7 +50,8 @@ jobs:
       - name: Configure kubectl
       run: aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME" --region "$AWS_REGION"
 
-      - name: Roll out backend deployment
+      - name: Apply K8s manifests
       run: |
-        kubectl set image deployment/"$DEPLOYMENT_NAME" "$CONTAINER_NAME"="$IMAGE_URI" -n "$K8S_NAMESPACE"
+        sed -i "s|#{IMAGE_URI}#|$IMAGE_URI|g" backend/k8s/deployment.yaml
+        kubectl apply -f backend/k8s/ -n "$K8S_NAMESPACE"
         kubectl rollout status deployment/"$DEPLOYMENT_NAME" -n "$K8S_NAMESPACE" --timeout=180s
