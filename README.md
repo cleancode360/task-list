@@ -174,7 +174,6 @@ Set these repository variables/secrets:
   - `AMPLIFY_APP_ID`
   - `AMPLIFY_BRANCH_NAME`
   - `BACKEND_PUBLIC_URL`
-  - `TF_VAR_GITHUB_REPOSITORY`
   - `TF_VAR_DB_USERNAME`
   - `TF_VAR_APP_USERNAME`
 - Secrets:
