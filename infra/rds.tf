@@ -33,7 +33,7 @@ module "rds" {
   instance_class       = "db.t4g.micro"
   allocated_storage    = 20
 
-  db_name  = var.db_name
+  db_name  = "${local.name_prefix}-db"
   username = var.db_username
   password = var.db_password
   port     = 5432

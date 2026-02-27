@@ -21,12 +21,6 @@ variable "github_repository" {
   type        = string
 }
 
-variable "db_name" {
-  description = "PostgreSQL database name."
-  type        = string
-  default     = "todo"
-}
-
 variable "db_username" {
   description = "PostgreSQL username."
   type        = string
