@@ -67,16 +67,14 @@ Install and configure:
 cd infra
 ```
 
-2. Create a local `terraform.tfvars` file (non-sensitive values):
-```hcl
-aws_region         = "us-east-1"
-project_name       = "todo"
-environment        = "dev"
-github_repository  = "your-org/your-repo"
-db_name            = "todo"
-db_username        = "todo"
-app_username       = "admin"
-frontend_branch    = "master"
+2. For local runs, provide non-sensitive values via environment variables:
+```bash
+export TF_VAR_project_name="todo"
+export TF_VAR_github_repository="your-org/your-repo"
+export TF_VAR_environment="dev"
+export TF_VAR_db_username="todo"
+export TF_VAR_app_username="admin"
+export TF_VAR_frontend_branch="master"
 ```
 
 3. Provide sensitive values via environment variables:
@@ -172,6 +170,9 @@ Set these repository variables/secrets:
   - `AMPLIFY_APP_ID`
   - `AMPLIFY_BRANCH_NAME`
   - `BACKEND_PUBLIC_URL`
+  - `TF_VAR_PROJECT_NAME`
+  - `TF_VAR_GITHUB_REPOSITORY`
+  - `TF_VAR_ENVIRONMENT`
   - `TF_VAR_DB_USERNAME`
   - `TF_VAR_APP_USERNAME`
 - Secrets:
