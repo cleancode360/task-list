@@ -77,7 +77,6 @@ db_name            = "todo"
 db_username        = "todo"
 app_username       = "admin"
 frontend_branch    = "master"
-backend_image_tag  = "latest"
 ```
 
 3. Provide sensitive values via environment variables:

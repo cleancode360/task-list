@@ -56,9 +56,3 @@ variable "frontend_branch" {
   type        = string
   default     = "master"
 }
-
-variable "backend_image_tag" {
-  description = "Default backend image tag for initial deployment."
-  type        = string
-  default     = "latest"
-}
