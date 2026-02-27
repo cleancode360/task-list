@@ -1,12 +1,4 @@
-aws_region         = "us-east-1"
 project_name       = "todo"
+github_repository  = "atomcode350/task-list"
 environment        = "dev"
-github_repository  = "your-org/your-repo"
-
 db_name     = "todo"
-db_username = "todo"
-
-app_username = "admin"
-
-backend_image_tag  = "latest"
-backend_public_url = ""

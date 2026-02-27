@@ -62,9 +62,3 @@ variable "backend_image_tag" {
   type        = string
   default     = "latest"
 }
-
-variable "backend_public_url" {
-  description = "Public URL of the backend ingress/ALB used by frontend."
-  type        = string
-  default     = ""
-}
