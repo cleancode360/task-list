@@ -26,6 +26,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolve values from SSM
+        run: |
+          AMPLIFY_APP_ID=$(aws ssm get-parameter \
+            --name "/$SSM_PARAM_PREFIX/amplify-app-id" \
+            --query "Parameter.Value" --output text)
+          BACKEND_PUBLIC_URL=$(aws ssm get-parameter \
+            --name "/$SSM_PARAM_PREFIX/backend-public-url" \
+            --query "Parameter.Value" --output text)
+          echo "AMPLIFY_APP_ID=$AMPLIFY_APP_ID" >> "$GITHUB_ENV"
+          echo "BACKEND_PUBLIC_URL=$BACKEND_PUBLIC_URL" >> "$GITHUB_ENV"
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -41,20 +58,7 @@ jobs:
         run: npm run build
         working-directory: frontend
         env:
-          VITE_API_BASE_URL: ${{ vars.BACKEND_PUBLIC_URL }}
-
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Resolve Amplify app ID from SSM
-        run: |
-          AMPLIFY_APP_ID=$(aws ssm get-parameter \
-            --name "/$SSM_PARAM_PREFIX/amplify-app-id" \
-            --query "Parameter.Value" --output text)
-          echo "AMPLIFY_APP_ID=$AMPLIFY_APP_ID" >> "$GITHUB_ENV"
+          VITE_API_BASE_URL: ${{ env.BACKEND_PUBLIC_URL }}
 
       - name: Deploy to Amplify
         run: |

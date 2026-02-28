@@ -111,7 +111,7 @@ resource "aws_iam_policy" "github_actions_infra_read" {
     Statement = [
       {
         Effect   = "Allow"
-        Action   = ["ssm:GetParameter", "ssm:GetParametersByPath"]
+        Action   = ["ssm:GetParameter", "ssm:GetParametersByPath", "ssm:PutParameter"]
         Resource = "arn:aws:ssm:*:*:parameter/${var.ssm_param_prefix}/*"
       }
     ]
