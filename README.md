@@ -72,6 +72,8 @@ cd infra
 export TF_VAR_project_name="todo"
 export TF_VAR_github_repository="your-org/your-repo"
 export TF_VAR_environment="dev"
+export TF_VAR_aws_region="us-east-1"
+export TF_VAR_ssm_param_prefix="todo-dev"
 export TF_VAR_db_username="todo"
 export TF_VAR_app_username="admin"
 export TF_VAR_frontend_branch="master"
@@ -168,7 +170,6 @@ Set these repository variables/secrets:
 - Variables:
   - `AWS_REGION`
   - `AMPLIFY_BRANCH_NAME`
-  - `BACKEND_PUBLIC_URL`
   - `TF_VAR_PROJECT_NAME`
   - `TF_VAR_GITHUB_REPOSITORY`
   - `TF_VAR_ENVIRONMENT`
@@ -186,7 +187,7 @@ SSM parameter path prefix is controlled by `SSM_PARAM_PREFIX` (without leading s
 
 - Amplify app is provisioned via Terraform (`infra/amplify.tf`) as a hosting-only service
 - Frontend is built by GitHub Actions (`deploy-frontend.yml`) and deployed to Amplify via the AWS CLI
-- `VITE_API_BASE_URL` is injected at build time from the `BACKEND_PUBLIC_URL` GitHub Variable
+- `VITE_API_BASE_URL` is injected at build time from SSM (`backend-public-url`, written by the backend deploy workflow)
 - The Amplify app ID is written by Terraform to SSM and resolved by workflows at deploy time
 
 ## Auth
