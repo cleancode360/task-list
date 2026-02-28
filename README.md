@@ -172,7 +172,7 @@ Set these repository variables/secrets:
   - `TF_VAR_PROJECT_NAME`
   - `TF_VAR_GITHUB_REPOSITORY`
   - `TF_VAR_ENVIRONMENT`
-  - `TF_VAR_SSM_PARAM_PREFIX`
+  - `SSM_PARAM_PREFIX`
   - `TF_VAR_DB_USERNAME`
   - `TF_VAR_APP_USERNAME`
 - Secrets:
@@ -180,7 +180,7 @@ Set these repository variables/secrets:
   - `TF_VAR_DB_PASSWORD`
   - `TF_VAR_APP_PASSWORD`
 
-SSM parameter path prefix is controlled by `TF_VAR_SSM_PARAM_PREFIX` (without leading slash, example: `todo-dev`) and used by both Terraform and deploy workflows.
+SSM parameter path prefix is controlled by `SSM_PARAM_PREFIX` (without leading slash, example: `todo-dev`) and used by both Terraform and deploy workflows.
 
 ## Amplify frontend hosting
 

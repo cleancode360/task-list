@@ -15,7 +15,7 @@ permissions:
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
-  SSM_PARAM_PREFIX: ${{ vars.TF_VAR_SSM_PARAM_PREFIX }}
+  SSM_PARAM_PREFIX: ${{ vars.SSM_PARAM_PREFIX }}
   AMPLIFY_BRANCH_NAME: ${{ vars.AMPLIFY_BRANCH_NAME }}
 
 jobs:
