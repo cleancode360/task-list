@@ -95,15 +95,17 @@ Terraform provisions:
 - EKS cluster with Fargate profiles
 - RDS PostgreSQL
 - ECR repository for backend image
+- SSM Parameter Store entries for infra outputs consumed by CI/CD
 - IAM roles/policies (including GitHub Actions role)
 - Amplify app and production branch
 - AWS Load Balancer Controller (via Helm)
 
 ## Kubernetes deployment workflow
 
-1. Update placeholders before apply:
-- `backend/k8s/configmap.yaml`: replace `REPLACE_RDS_ENDPOINT` and `REPLACE_AMPLIFY_DOMAIN`
-- `backend/k8s/deployment.yaml`: replace `REPLACE_ECR_URL`
+1. Placeholder resolution:
+- `backend/k8s/configmap.yaml` uses `#{RDS_ENDPOINT}#`, `#{DB_NAME}#`, and `#{AMPLIFY_DOMAIN}#`
+- `backend/k8s/deployment.yaml` uses `#{IMAGE_URI}#`
+- In CI/CD, `deploy-backend.yml` resolves these values automatically (infra values from SSM, image URI from build step)
 
 2. Apply manifests:
 ```bash
@@ -165,14 +167,12 @@ On push to `master`:
 Set these repository variables/secrets:
 - Variables:
   - `AWS_REGION`
-  - `EKS_CLUSTER_NAME`
-  - `ECR_REPOSITORY`
-  - `AMPLIFY_APP_ID`
   - `AMPLIFY_BRANCH_NAME`
   - `BACKEND_PUBLIC_URL`
   - `TF_VAR_PROJECT_NAME`
   - `TF_VAR_GITHUB_REPOSITORY`
   - `TF_VAR_ENVIRONMENT`
+  - `TF_VAR_SSM_PARAM_PREFIX`
   - `TF_VAR_DB_USERNAME`
   - `TF_VAR_APP_USERNAME`
 - Secrets:
@@ -180,12 +180,14 @@ Set these repository variables/secrets:
   - `TF_VAR_DB_PASSWORD`
   - `TF_VAR_APP_PASSWORD`
 
+SSM parameter path prefix is controlled by `TF_VAR_SSM_PARAM_PREFIX` (without leading slash, example: `todo-dev`) and used by both Terraform and deploy workflows.
+
 ## Amplify frontend hosting
 
 - Amplify app is provisioned via Terraform (`infra/amplify.tf`) as a hosting-only service
 - Frontend is built by GitHub Actions (`deploy-frontend.yml`) and deployed to Amplify via the AWS CLI
 - `VITE_API_BASE_URL` is injected at build time from the `BACKEND_PUBLIC_URL` GitHub Variable
-- After `terraform apply`, copy the `amplify_app_id` output into your GitHub Variable `AMPLIFY_APP_ID`
+- The Amplify app ID is written by Terraform to SSM and resolved by workflows at deploy time
 
 ## Auth
 The API is protected with HTTP Basic auth. The UI prompts for username/password and uses those credentials for API calls.

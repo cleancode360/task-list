@@ -14,8 +14,7 @@ permissions:
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
-  EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
-  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+  SSM_PARAM_PREFIX: ${{ vars.TF_VAR_SSM_PARAM_PREFIX }}
   K8S_NAMESPACE: todo-app
   DEPLOYMENT_NAME: todo-backend
   CONTAINER_NAME: backend
@@ -42,22 +41,23 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
-        RDS_DB_IDENTIFIER: ${{ vars.RDS_DB_IDENTIFIER }}
-        AMPLIFY_APP_ID: ${{ vars.AMPLIFY_APP_ID }}
       run: |
+        PARAMETERS_JSON=$(aws ssm get-parameters-by-path \
+          --path "/$SSM_PARAM_PREFIX" \
+          --recursive \
+          --output json)
+
+        EKS_CLUSTER_NAME=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/eks-cluster-name")) | .Value')
+        ECR_REPOSITORY=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/ecr-repository-name")) | .Value')
+        RDS_ENDPOINT=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/rds-endpoint")) | .Value')
+        DB_NAME=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/rds-db-name")) | .Value')
+        AMPLIFY_DOMAIN=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/amplify-default-domain")) | .Value')
+
         docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" backend
         docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
         IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        RDS_ENDPOINT=$(aws rds describe-db-instances \
-          --db-instance-identifier "$RDS_DB_IDENTIFIER" \
-          --query "DBInstances[0].Endpoint.Address" --output text)
-        DB_NAME=$(aws rds describe-db-instances \
-          --db-instance-identifier "$RDS_DB_IDENTIFIER" \
-          --query "DBInstances[0].DBName" --output text)
-        AMPLIFY_DOMAIN=$(aws amplify get-app \
-          --app-id "$AMPLIFY_APP_ID" \
-          --query "app.defaultDomain" --output text)
+        echo "EKS_CLUSTER_NAME=$EKS_CLUSTER_NAME" >> "$GITHUB_ENV"
 
         sed -i "s|#{IMAGE_URI}#|$IMAGE_URI|g" backend/k8s/deployment.yaml
         sed -i "s|#{RDS_ENDPOINT}#|$RDS_ENDPOINT|g" backend/k8s/configmap.yaml

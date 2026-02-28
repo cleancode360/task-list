@@ -50,3 +50,13 @@ variable "frontend_branch" {
   type        = string
   default     = "master"
 }
+
+variable "ssm_param_prefix" {
+  description = "SSM parameter path prefix without leading slash (example: todo-dev)."
+  type        = string
+
+  validation {
+    condition     = !startswith(var.ssm_param_prefix, "/") && !endswith(var.ssm_param_prefix, "/")
+    error_message = "ssm_param_prefix must not start or end with '/'. Example: todo-dev."
+  }
+}

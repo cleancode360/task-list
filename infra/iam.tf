@@ -104,20 +104,15 @@ resource "aws_iam_role_policy_attachment" "github_actions_amplify" {
 
 resource "aws_iam_policy" "github_actions_infra_read" {
   name        = "${local.name_prefix}-github-actions-infra-read"
-  description = "Allow GitHub Actions to query RDS and Amplify for deploy-time config resolution"
+  description = "Allow GitHub Actions to read infrastructure outputs from SSM Parameter Store"
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
         Effect   = "Allow"
-        Action   = ["rds:DescribeDBInstances"]
-        Resource = module.rds.db_instance_arn
-      },
-      {
-        Effect   = "Allow"
-        Action   = ["amplify:GetApp"]
-        Resource = aws_amplify_app.frontend.arn
+        Action   = ["ssm:GetParameter", "ssm:GetParametersByPath"]
+        Resource = "arn:aws:ssm:*:*:parameter/${var.ssm_param_prefix}/*"
       }
     ]
   })
