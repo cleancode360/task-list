@@ -50,6 +50,42 @@ variable "frontend_branch" {
   default     = "master"
 }
 
+variable "rds_multi_az" {
+  description = "Enable Multi-AZ deployment for RDS."
+  type        = bool
+  default     = true
+}
+
+variable "rds_deletion_protection" {
+  description = "Enable deletion protection on the RDS instance."
+  type        = bool
+  default     = true
+}
+
+variable "rds_skip_final_snapshot" {
+  description = "Skip creating a final DB snapshot on destroy."
+  type        = bool
+  default     = false
+}
+
+variable "eks_public_endpoint" {
+  description = "Allow public access to the EKS API endpoint."
+  type        = bool
+  default     = true
+}
+
+variable "cloudwatch_retention_days" {
+  description = "CloudWatch Logs retention in days."
+  type        = number
+  default     = 365
+}
+
+variable "alert_email" {
+  description = "Optional email address subscribed to infrastructure alarms."
+  type        = string
+  default     = ""
+}
+
 variable "ssm_param_prefix" {
   description = "SSM parameter path prefix without leading slash (example: todo-dev)."
   type        = string

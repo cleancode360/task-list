@@ -77,6 +77,12 @@ export TF_VAR_ssm_param_prefix="todo-dev"
 export TF_VAR_db_username="todo"
 export TF_VAR_app_username="admin"
 export TF_VAR_frontend_branch="master"
+export TF_VAR_rds_multi_az="false"
+export TF_VAR_rds_deletion_protection="false"
+export TF_VAR_rds_skip_final_snapshot="true"
+export TF_VAR_eks_public_endpoint="true"
+export TF_VAR_cloudwatch_retention_days="14"
+export TF_VAR_alert_email=""
 ```
 
 3. Provide sensitive values via environment variables:
@@ -101,6 +107,8 @@ Terraform provisions:
 - IAM roles/policies (including GitHub Actions role)
 - Amplify app and production branch
 - AWS Load Balancer Controller (via Helm)
+- CloudWatch log groups with configurable retention
+- CloudWatch alarms for RDS with SNS notifications
 
 ## Kubernetes deployment workflow
 
@@ -131,13 +139,18 @@ kubectl rollout status deployment/todo-backend -n todo-app
 
 ### CloudWatch Logs
 - Fargate log routing is configured by `backend/k8s/aws-logging.yaml`
-- Logs are sent to `/eks/todo-app`
+- Logs are sent to `/eks/todo-app` (retention controlled by `TF_VAR_cloudwatch_retention_days`)
 
 Useful commands:
 ```bash
 aws logs tail /eks/todo-app --follow
 kubectl logs -f deployment/todo-backend -n todo-app
 ```
+
+### CloudWatch alarms (RDS)
+- Terraform creates alarms for `CPUUtilization`, `FreeStorageSpace`, and `DatabaseConnections`
+- Alarm notifications are published to an SNS topic (`<project>-<environment>-infra-alerts`)
+- Set `TF_VAR_alert_email` to receive email notifications from the SNS topic
 
 ### Liveness and readiness probes
 Configured in `backend/k8s/deployment.yaml` and backed by Spring Actuator:

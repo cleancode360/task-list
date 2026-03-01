@@ -5,12 +5,14 @@ module "eks" {
   cluster_name    = "${local.name_prefix}-eks"
   cluster_version = "1.30"
 
-  cluster_endpoint_public_access = true
+  cluster_endpoint_public_access  = var.eks_public_endpoint
+  cluster_endpoint_private_access = true
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
   cluster_enabled_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+  cloudwatch_log_group_retention_in_days = var.cloudwatch_retention_days
 
   cluster_addons = {
     eks-pod-identity-agent = {
