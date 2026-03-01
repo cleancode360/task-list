@@ -52,6 +52,7 @@ jobs:
           RDS_ENDPOINT=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/rds-endpoint")) | .Value')
           DB_NAME=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/rds-db-name")) | .Value')
           AMPLIFY_DOMAIN=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/amplify-default-domain")) | .Value')
+          BACKEND_SECRETS_KEY=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/backend-secrets-key")) | .Value')
 
           docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" backend
           docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
@@ -63,6 +64,9 @@ jobs:
           sed -i "s|#{RDS_ENDPOINT}#|$RDS_ENDPOINT|g" backend/k8s/configmap.yaml
           sed -i "s|#{DB_NAME}#|$DB_NAME|g" backend/k8s/configmap.yaml
           sed -i "s|#{AMPLIFY_DOMAIN}#|$AMPLIFY_DOMAIN|g" backend/k8s/configmap.yaml
+          sed -i "s|#{SECRETS_MANAGER_KEY}#|$BACKEND_SECRETS_KEY|g" backend/k8s/configmap.yaml
+          sed -i "s|#{AWS_REGION}#|$AWS_REGION|g" backend/k8s/configmap.yaml
+          sed -i "s|#{AWS_REGION}#|$AWS_REGION|g" backend/k8s/aws-logging.yaml
 
       - name: Apply K8s manifests
         run: |

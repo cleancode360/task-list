@@ -1,0 +1,7 @@
+spring:
+  config:
+    import: aws-secretsmanager:${AWS_SECRET_NAME}
+  cloud:
+    aws:
+      region:
+        static: ${AWS_REGION}

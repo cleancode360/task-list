@@ -12,6 +12,12 @@ module "eks" {
 
   cluster_enabled_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
+  cluster_addons = {
+    eks-pod-identity-agent = {
+      most_recent = true
+    }
+  }
+
   fargate_profiles = {
     todo_app = {
       name = "todo-app"

@@ -45,3 +45,11 @@ resource "aws_ssm_parameter" "amplify_default_domain" {
 
   tags = local.tags
 }
+
+resource "aws_ssm_parameter" "backend_secrets_key" {
+  name  = "/${var.ssm_param_prefix}/backend-secrets-key"
+  type  = "String"
+  value = aws_secretsmanager_secret.backend.name
+
+  tags = local.tags
+}
