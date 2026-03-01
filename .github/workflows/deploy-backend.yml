@@ -15,7 +15,7 @@ permissions:
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   SSM_PARAM_PREFIX: ${{ vars.SSM_PARAM_PREFIX }}
-  K8S_NAMESPACE: todo-app
+  K8S_NAMESPACE: ${{ vars.TF_VAR_K8S_NAMESPACE }}
   DEPLOYMENT_NAME: todo-backend
 
 jobs:

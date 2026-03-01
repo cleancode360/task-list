@@ -70,6 +70,7 @@ cd infra
 2. For local runs, provide non-sensitive values via environment variables:
 ```bash
 export TF_VAR_project_name="todo"
+export TF_VAR_k8s_namespace="todo-app"
 export TF_VAR_github_repository="your-org/your-repo"
 export TF_VAR_environment="dev"
 export TF_VAR_aws_region="us-east-1"
@@ -185,6 +186,7 @@ Set these repository variables/secrets:
   - `AWS_REGION`
   - `AMPLIFY_BRANCH_NAME`
   - `TF_VAR_PROJECT_NAME`
+  - `TF_VAR_K8S_NAMESPACE` (used by Terraform and backend deploy workflow as the Kubernetes namespace)
   - `TF_VAR_GITHUB_REPOSITORY`
   - `TF_VAR_ENVIRONMENT`
   - `SSM_PARAM_PREFIX`

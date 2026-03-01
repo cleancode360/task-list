@@ -86,6 +86,16 @@ variable "alert_email" {
   default     = ""
 }
 
+variable "k8s_namespace" {
+  description = "Kubernetes namespace used for backend workloads."
+  type        = string
+
+  validation {
+    condition     = trimspace(var.k8s_namespace) != ""
+    error_message = "k8s_namespace must be a non-empty string."
+  }
+}
+
 variable "ssm_param_prefix" {
   description = "SSM parameter path prefix without leading slash (example: todo-dev)."
   type        = string

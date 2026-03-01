@@ -33,6 +33,7 @@ jobs:
       TF_VAR_app_password: ${{ secrets.TF_VAR_APP_PASSWORD }}
       TF_VAR_frontend_branch: ${{ vars.AMPLIFY_BRANCH_NAME }}
       TF_VAR_aws_region: ${{ vars.AWS_REGION }}
+      TF_VAR_k8s_namespace: ${{ vars.TF_VAR_K8S_NAMESPACE }}
 
     steps:
       - name: Checkout
