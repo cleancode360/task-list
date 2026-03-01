@@ -105,7 +105,8 @@ Terraform provisions:
 ## Kubernetes deployment workflow
 
 1. Placeholder resolution:
-- `backend/k8s/configmap.yaml` uses `#{RDS_ENDPOINT}#`, `#{DB_NAME}#`, and `#{AMPLIFY_DOMAIN}#`
+- `backend/k8s/configmap.yaml` uses `#{RDS_ENDPOINT}#`, `#{DB_NAME}#`, `#{AMPLIFY_DOMAIN}#`, `#{SECRETS_MANAGER_KEY}#`, and `#{AWS_REGION}#`
+- `backend/k8s/aws-logging.yaml` uses `#{AWS_REGION}#`
 - `backend/k8s/deployment.yaml` uses `#{IMAGE_URI}#`
 - In CI/CD, `deploy-backend.yml` resolves these values automatically (infra values from SSM, image URI from build step)
 
@@ -113,8 +114,8 @@ Terraform provisions:
 ```bash
 kubectl apply -f backend/k8s/namespace.yaml
 kubectl apply -f backend/k8s/aws-logging.yaml
+kubectl apply -f backend/k8s/service-account.yaml
 kubectl apply -f backend/k8s/configmap.yaml
-kubectl apply -f backend/k8s/external-secret.yaml
 kubectl apply -f backend/k8s/deployment.yaml
 kubectl apply -f backend/k8s/service.yaml
 kubectl apply -f backend/k8s/ingress.yaml
@@ -192,6 +193,7 @@ SSM parameter path prefix is controlled by `SSM_PARAM_PREFIX` (without leading s
 
 ## Auth
 The API is protected with HTTP Basic auth. The UI prompts for username/password and uses those credentials for API calls.
+Clients can validate credentials via `POST /api/auth/login`.
 
 ## API examples (HATEOAS)
 ```bash
@@ -200,6 +202,16 @@ curl -u admin:admin http://localhost:8080/api/tasks/1
 curl -u admin:admin -H "Content-Type: application/json" \
   -d '{"title":"First task","description":"Write docs"}' \
   http://localhost:8080/api/tasks
+curl -u admin:admin http://localhost:8080/api/tags
+curl -u admin:admin -H "Content-Type: application/json" \
+  -d '{"name":"work"}' \
+  http://localhost:8080/api/tags
+curl -u admin:admin -X PUT -H "Content-Type: application/json" \
+  -d '{"name":"personal"}' \
+  http://localhost:8080/api/tags/1
+curl -u admin:admin -X DELETE http://localhost:8080/api/tags/1
+curl -u admin:admin -X POST http://localhost:8080/api/tasks/1/tags/2
+curl -u admin:admin -X DELETE http://localhost:8080/api/tasks/1/tags/2
 ```
 
 HATEOAS links are exposed in `_links` for each entity to guide updates, deletes, and toggles.
