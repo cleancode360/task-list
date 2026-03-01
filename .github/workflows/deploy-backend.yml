@@ -17,7 +17,6 @@ env:
   SSM_PARAM_PREFIX: ${{ vars.SSM_PARAM_PREFIX }}
   K8S_NAMESPACE: todo-app
   DEPLOYMENT_NAME: todo-backend
-  CONTAINER_NAME: backend
 
 jobs:
   deploy:
@@ -76,7 +75,7 @@ jobs:
 
       - name: Publish backend URL to SSM
         run: |
-          ALB_HOSTNAME=$(kubectl get ingress todo-backend -n "$K8S_NAMESPACE" \
+          ALB_HOSTNAME=$(kubectl get ingress "$DEPLOYMENT_NAME" -n "$K8S_NAMESPACE" \
             -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
           aws ssm put-parameter \
             --name "/$SSM_PARAM_PREFIX/backend-public-url" \

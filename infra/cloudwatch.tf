@@ -1,5 +1,5 @@
 resource "aws_cloudwatch_log_group" "eks_app" {
-  name              = "/eks/todo-app"
+  name              = local.k8s_log_group
   retention_in_days = var.cloudwatch_retention_days
 
   tags = local.tags

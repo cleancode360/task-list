@@ -22,10 +22,10 @@ module "eks" {
 
   fargate_profiles = {
     todo_app = {
-      name = "todo-app"
+      name = local.k8s_namespace
       selectors = [
         {
-          namespace = "todo-app"
+          namespace = local.k8s_namespace
         },
         {
           namespace = "aws-observability"

@@ -34,6 +34,8 @@ data "aws_caller_identity" "current" {}
 
 locals {
   name_prefix = "${var.project_name}-${var.environment}"
+  k8s_namespace = "${var.project_name}-app"
+  k8s_log_group = "/eks/${var.project_name}-app"
   tags = {
     Project     = var.project_name
     Environment = var.environment

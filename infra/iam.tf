@@ -153,7 +153,7 @@ resource "aws_iam_role_policy_attachment" "backend_secrets_access" {
 
 resource "aws_eks_pod_identity_association" "backend_secrets" {
   cluster_name    = module.eks.cluster_name
-  namespace       = "todo-app"
+  namespace       = local.k8s_namespace
   service_account = "backend-secrets-sa"
   role_arn        = aws_iam_role.backend_secrets.arn
 }
