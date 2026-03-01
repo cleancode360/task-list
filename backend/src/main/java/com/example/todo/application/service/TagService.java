@@ -36,6 +36,11 @@ public class TagService {
     @Transactional
     public Tag update(Long id, String name) {
         Tag tag = getById(id);
+        tagRepository.findByNameIgnoreCase(name)
+            .filter(existing -> !existing.getId().equals(id))
+            .ifPresent(existing -> {
+                throw new IllegalArgumentException("Tag already exists: " + name);
+            });
         tag.setName(name);
         return tagRepository.save(tag);
     }
