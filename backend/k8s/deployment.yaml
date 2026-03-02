@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: todo-backend
-  namespace: todo-app
+  name: #{PROJECT_NAME}#-backend
+  namespace: #{K8S_NAMESPACE}#
   labels:
-    app: todo-backend
+    app: #{PROJECT_NAME}#-backend
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: todo-backend
+      app: #{PROJECT_NAME}#-backend
   template:
     metadata:
       labels:
-        app: todo-backend
+        app: #{PROJECT_NAME}#-backend
     spec:
       serviceAccountName: backend-secrets-sa
       containers:

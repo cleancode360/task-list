@@ -6,7 +6,6 @@ variable "aws_region" {
 variable "project_name" {
   description = "Project slug used in resource names."
   type        = string
-  default     = "todo"
 }
 
 variable "environment" {

@@ -18,10 +18,10 @@ terraform {
 
   # Uncomment after creating remote state resources.
   # backend "s3" {
-  #   bucket         = "todo-terraform-state"
+  #   bucket         = "#{PROJECT_NAME}#-terraform-state"
   #   key            = "aws/eks-fargate/terraform.tfstate"
   #   region         = "us-east-1"
-  #   dynamodb_table = "todo-terraform-locks"
+  #   dynamodb_table = "#{PROJECT_NAME}#-terraform-locks"
   #   encrypt        = true
   # }
 }
