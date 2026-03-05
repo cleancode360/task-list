@@ -23,7 +23,7 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<Map<String, Object>> handleApiException(ApiException ex) {
-        return buildResponse(ex.getStatus(), ex);
+        return buildResponse(ex.getStatus(), ex.getMessage(), ex);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -42,10 +42,6 @@ public class ApiExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleUnexpectedException(Exception ex) {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected internal server error", ex);
-    }
-
-    private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, Exception ex) {
-        return buildResponse(status, ex.getMessage(), ex);
     }
 
     private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String message, Exception ex) {
