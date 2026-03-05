@@ -2,6 +2,7 @@ package com.example.todo.web.exception;
 
 import com.example.todo.application.exception.ApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.todo.web.dto.ApiErrorResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @RestControllerAdvice
 @Slf4j
@@ -22,39 +24,45 @@ public class ApiExceptionHandler {
     private final ObjectMapper objectMapper;
 
     @ExceptionHandler(ApiException.class)
-    public ResponseEntity<Map<String, Object>> handleApiException(ApiException ex) {
+    public ResponseEntity<ApiErrorResponse> handleApiException(ApiException ex) {
         return buildResponse(ex.getStatus(), ex.getMessage(), ex);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
             errors.put(error.getField(), error.getDefaultMessage());
         }
-        Map<String, Object> body = baseBody(HttpStatus.BAD_REQUEST);
-        body.put("message", "Validation failed");
-        body.put("errors", errors);
-        log.error("{}", objectMapper.valueToTree(body), ex);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+        ApiErrorResponse body = createBody(HttpStatus.BAD_REQUEST, "Validation failed", errors);
+        return logAndReturn(body, HttpStatus.BAD_REQUEST, ex);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleUnexpectedException(Exception ex) {
+    public ResponseEntity<ApiErrorResponse> handleUnexpectedException(Exception ex) {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected internal server error", ex);
     }
 
-    private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String message, Exception ex) {
-        Map<String, Object> body = baseBody(status);
-        body.put("message", message);
-        log.error("{}", objectMapper.valueToTree(body), ex);
-        return ResponseEntity.status(status).body(body);
+    private ResponseEntity<ApiErrorResponse> buildResponse(HttpStatus status, String message, Exception ex) {
+        ApiErrorResponse body = createBody(status, message, null);
+        return logAndReturn(body, status, ex);
     }
 
-    private Map<String, Object> baseBody(HttpStatus status) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("status", status.value());
-        body.put("timestamp", Instant.now().toString());
-        return body;
+    private ApiErrorResponse createBody(HttpStatus status, String message, Map<String, String> errors) {
+        HttpStatus safeStatus = Objects.requireNonNull(status, "status must not be null");
+        
+        return new ApiErrorResponse(
+            safeStatus.value(),
+            Instant.now().toString(),
+            message,
+            errors
+        );
+    }
+
+    private ResponseEntity<ApiErrorResponse> logAndReturn(ApiErrorResponse body, HttpStatus status, Exception ex) {
+        HttpStatus safeStatus = Objects.requireNonNull(status, "status must not be null");
+
+        log.error("{}", objectMapper.valueToTree(body), ex);
+        return ResponseEntity.status(safeStatus).body(body);
     }
 }
