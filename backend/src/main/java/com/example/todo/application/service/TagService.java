@@ -1,10 +1,11 @@
 package com.example.todo.application.service;
 
-import com.example.todo.application.exception.NotFoundException;
+import com.example.todo.application.exception.ApiException;
 import com.example.todo.domain.model.Tag;
 import com.example.todo.infrastructure.repository.TagRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,13 +23,13 @@ public class TagService {
     @Transactional(readOnly = true)
     public Tag getById(Long id) {
         return tagRepository.findById(id)
-            .orElseThrow(() -> new NotFoundException("Tag not found: " + id));
+            .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Tag not found: " + id));
     }
 
     @Transactional
     public Tag create(String name) {
         tagRepository.findByNameIgnoreCase(name).ifPresent(existing -> {
-            throw new IllegalArgumentException("Tag already exists: " + name);
+            throw new ApiException(HttpStatus.CONFLICT, "Tag already exists: " + name);
         });
         return tagRepository.save(new Tag(name));
     }
@@ -39,7 +40,7 @@ public class TagService {
         tagRepository.findByNameIgnoreCase(name)
             .filter(existing -> !existing.getId().equals(id))
             .ifPresent(existing -> {
-                throw new IllegalArgumentException("Tag already exists: " + name);
+                throw new ApiException(HttpStatus.CONFLICT, "Tag already exists: " + name);
             });
         tag.setName(name);
         return tagRepository.save(tag);

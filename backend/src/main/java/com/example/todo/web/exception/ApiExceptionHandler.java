@@ -1,6 +1,6 @@
 package com.example.todo.web.exception;
 
-import com.example.todo.application.exception.NotFoundException;
+import com.example.todo.application.exception.ApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,14 +21,9 @@ import java.util.Map;
 public class ApiExceptionHandler {
     private final ObjectMapper objectMapper;
 
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleNotFound(NotFoundException ex) {
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> handleBadRequest(IllegalArgumentException ex) {
-        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<Map<String, Object>> handleApiException(ApiException ex) {
+        return buildResponse(ex.getStatus(), ex);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -42,6 +37,15 @@ public class ApiExceptionHandler {
         body.put("errors", errors);
         log.error("{}", objectMapper.valueToTree(body), ex);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleUnexpectedException(Exception ex) {
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected internal server error", ex);
+    }
+
+    private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, Exception ex) {
+        return buildResponse(status, ex.getMessage(), ex);
     }
 
     private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String message, Exception ex) {

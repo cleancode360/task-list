@@ -1,12 +1,13 @@
 package com.example.todo.application.service;
 
-import com.example.todo.application.exception.NotFoundException;
+import com.example.todo.application.exception.ApiException;
 import com.example.todo.domain.model.Tag;
 import com.example.todo.domain.model.Task;
 import com.example.todo.infrastructure.repository.TagRepository;
 import com.example.todo.infrastructure.repository.TaskRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +26,7 @@ public class TaskService {
     @Transactional(readOnly = true)
     public Task getById(Long id) {
         return taskRepository.findById(id)
-            .orElseThrow(() -> new NotFoundException("Task not found: " + id));
+            .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Task not found: " + id));
     }
 
     @Transactional
@@ -34,7 +35,7 @@ public class TaskService {
         if (tagIds != null) {
             for (Long tagId : tagIds) {
                 Tag tag = tagRepository.findById(tagId)
-                    .orElseThrow(() -> new NotFoundException("Tag not found: " + tagId));
+                    .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Tag not found: " + tagId));
                 task.addTag(tag);
             }
         }
@@ -58,7 +59,7 @@ public class TaskService {
             task.getTags().clear();
             for (Long tagId : tagIds) {
                 Tag tag = tagRepository.findById(tagId)
-                    .orElseThrow(() -> new NotFoundException("Tag not found: " + tagId));
+                    .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Tag not found: " + tagId));
                 task.addTag(tag);
             }
         }
@@ -82,7 +83,7 @@ public class TaskService {
     public Task addTag(Long taskId, Long tagId) {
         Task task = getById(taskId);
         Tag tag = tagRepository.findById(tagId)
-            .orElseThrow(() -> new NotFoundException("Tag not found: " + tagId));
+            .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Tag not found: " + tagId));
         task.addTag(tag);
         return taskRepository.save(task);
     }
@@ -91,7 +92,7 @@ public class TaskService {
     public Task removeTag(Long taskId, Long tagId) {
         Task task = getById(taskId);
         Tag tag = tagRepository.findById(tagId)
-            .orElseThrow(() -> new NotFoundException("Tag not found: " + tagId));
+            .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Tag not found: " + tagId));
         task.removeTag(tag);
         return taskRepository.save(task);
     }
