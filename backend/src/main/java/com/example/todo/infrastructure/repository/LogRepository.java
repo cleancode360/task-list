@@ -12,7 +12,7 @@ public class LogRepository {
     public void info(String message, Log logEntry) {
         log.info(
             message,
-            StructuredArguments.keyValue("details", logEntry)
+            StructuredArguments.keyValue("payload", logEntry)
         );
     }
 }
