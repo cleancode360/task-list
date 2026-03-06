@@ -17,6 +17,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/todo
       SPRING_DATASOURCE_USERNAME: todo
       SPRING_DATASOURCE_PASSWORD: todo
+      SPRING_CLOUD_AWS_SECRETSMANAGER_ENABLED: "false"
       APP_USERNAME: admin
       APP_PASSWORD: admin
       APP_CORS_ALLOWED_ORIGINS: http://localhost:3000

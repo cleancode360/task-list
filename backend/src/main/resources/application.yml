@@ -3,6 +3,8 @@ server:
   forward-headers-strategy: framework
 
 spring:
+  application:
+    name: ${PROJECT_NAME:todo}-backend
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/todo}
     username: ${SPRING_DATASOURCE_USERNAME:todo}
@@ -26,6 +28,10 @@ app:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173}
 
 management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
   endpoints:
     web:
       exposure:
