@@ -1,10 +1,9 @@
 package com.example.todo.web.exception;
 
 import com.example.todo.application.exception.ApiException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.todo.web.dto.ApiErrorResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.logstash.logback.argument.StructuredArguments;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -19,9 +18,7 @@ import java.util.Objects;
 
 @RestControllerAdvice
 @Slf4j
-@RequiredArgsConstructor
 public class ApiExceptionHandler {
-    private final ObjectMapper objectMapper;
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiErrorResponse> handleApiException(ApiException ex) {
@@ -62,7 +59,12 @@ public class ApiExceptionHandler {
     private ResponseEntity<ApiErrorResponse> logAndReturn(ApiErrorResponse body, HttpStatus status, Exception ex) {
         HttpStatus safeStatus = Objects.requireNonNull(status, "status must not be null");
 
-        log.error("{}", objectMapper.valueToTree(body), ex);
+        log.error(
+            "api_exception",
+            StructuredArguments.keyValue("status", safeStatus.value()),
+            StructuredArguments.keyValue("body", body),
+            ex
+        );
         return ResponseEntity.status(safeStatus).body(body);
     }
 }

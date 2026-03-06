@@ -3,6 +3,8 @@ package com.example.todo.web.controller;
 import com.example.todo.application.service.TaskService;
 import com.example.todo.web.assembler.TaskResponseAssembler;
 import com.example.todo.web.assembler.TaskSummaryAssembler;
+import com.example.todo.domain.model.Log;
+import com.example.todo.infrastructure.repository.LogRepository;
 import com.example.todo.web.dto.TaskCreateRequest;
 import com.example.todo.web.dto.TaskSummaryResponse;
 import com.example.todo.web.dto.TaskUpdateRequest;
@@ -21,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/tasks")
 @RequiredArgsConstructor
@@ -29,50 +33,153 @@ public class TaskController {
     private final TaskService taskService;
     private final TaskSummaryAssembler taskSummaryAssembler;
     private final TaskResponseAssembler taskResponseAssembler;
+    private final LogRepository logRepository;
 
     @GetMapping
     public CollectionModel<EntityModel<TaskSummaryResponse>> listTasks() {
-        return taskSummaryAssembler.toCollectionModel(taskService.getAll());
+        long startMs = System.currentTimeMillis();
+        CollectionModel<EntityModel<TaskSummaryResponse>> model =
+            taskSummaryAssembler.toCollectionModel(taskService.getAll());
+        logRepository.info(
+                "listTasks",
+                Log.builder()
+                        .request(null)
+                        .response(model)
+                        .status(HttpStatus.OK.value())
+                        .durationMs(System.currentTimeMillis() - startMs)
+                        .build());
+        return model;
     }
 
     @GetMapping("/{id}")
     public EntityModel<?> getTask(@PathVariable Long id) {
-        return taskResponseAssembler.toModel(taskService.getById(id));
+        long startMs = System.currentTimeMillis();
+        Map<String, Object> requestPayload = Map.of("id", id);
+        EntityModel<?> model = taskResponseAssembler.toModel(taskService.getById(id));
+
+        logRepository.info(
+            "getTask",
+            Log.builder()
+                .request(requestPayload)
+                .response(model)
+                .status(HttpStatus.OK.value())
+                .durationMs(System.currentTimeMillis() - startMs)
+                .build()
+        );
+        return model;
     }
 
     @PostMapping
     public ResponseEntity<EntityModel<?>> createTask(@Valid @RequestBody TaskCreateRequest request) {
+        long startMs = System.currentTimeMillis();
+        Object requestPayload = request;
         EntityModel<?> model = taskResponseAssembler.toModel(
             taskService.create(request.title(), request.description(), request.tagIds())
+        );
+
+        logRepository.info(
+            "createTask",
+            Log.builder()
+                .request(requestPayload)
+                .response(model)
+                .status(HttpStatus.CREATED.value())
+                .durationMs(System.currentTimeMillis() - startMs)
+                .build()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(model);
     }
 
     @PutMapping("/{id}")
     public EntityModel<?> updateTask(@PathVariable Long id, @Valid @RequestBody TaskUpdateRequest request) {
-        return taskResponseAssembler.toModel(
+        long startMs = System.currentTimeMillis();
+        Map<String, Object> requestPayload = Map.of("id", id, "body", request);
+        EntityModel<?> model = taskResponseAssembler.toModel(
             taskService.update(id, request.title(), request.description(), request.completed(), request.tagIds())
         );
+
+        logRepository.info(
+            "updateTask",
+            Log.builder()
+                .request(requestPayload)
+                .response(model)
+                .status(HttpStatus.OK.value())
+                .durationMs(System.currentTimeMillis() - startMs)
+                .build()
+        );
+        return model;
     }
 
     @PostMapping("/{id}/toggle")
     public EntityModel<?> toggleTask(@PathVariable Long id) {
-        return taskResponseAssembler.toModel(taskService.toggle(id));
+        long startMs = System.currentTimeMillis();
+        Map<String, Object> requestPayload = Map.of("id", id);
+        EntityModel<?> model = taskResponseAssembler.toModel(taskService.toggle(id));
+
+        logRepository.info(
+            "toggleTask",
+            Log.builder()
+                .request(requestPayload)
+                .response(model)
+                .status(HttpStatus.OK.value())
+                .durationMs(System.currentTimeMillis() - startMs)
+                .build()
+        );
+        return model;
     }
 
     @PostMapping("/{id}/tags/{tagId}")
     public EntityModel<?> addTag(@PathVariable Long id, @PathVariable Long tagId) {
-        return taskResponseAssembler.toModel(taskService.addTag(id, tagId));
+        long startMs = System.currentTimeMillis();
+        Map<String, Object> requestPayload = Map.of("id", id, "tagId", tagId);
+        EntityModel<?> model = taskResponseAssembler.toModel(taskService.addTag(id, tagId));
+
+        logRepository.info(
+            "addTag",
+            Log.builder()
+                .request(requestPayload)
+                .response(model)
+                .status(HttpStatus.OK.value())
+                .durationMs(System.currentTimeMillis() - startMs)
+                .build()
+        );
+        return model;
     }
 
     @DeleteMapping("/{id}/tags/{tagId}")
     public EntityModel<?> removeTag(@PathVariable Long id, @PathVariable Long tagId) {
-        return taskResponseAssembler.toModel(taskService.removeTag(id, tagId));
+        long startMs = System.currentTimeMillis();
+        Map<String, Object> requestPayload = Map.of("id", id, "tagId", tagId);
+        EntityModel<?> model = taskResponseAssembler.toModel(taskService.removeTag(id, tagId));
+
+        logRepository.info(
+            "removeTag",
+            Log.builder()
+                .request(requestPayload)
+                .response(model)
+                .status(HttpStatus.OK.value())
+                .durationMs(System.currentTimeMillis() - startMs)
+                .build()
+        );
+        return model;
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
+        long startMs = System.currentTimeMillis();
+        Map<String, Object> requestPayload = Map.of("id", id);
         taskService.delete(id);
-        return ResponseEntity.noContent().build();
+
+        ResponseEntity<Void> response = ResponseEntity.noContent().build();
+        logRepository.info(
+            "controlldeleteTasker_exit",
+            Log.builder()
+                .request(requestPayload)
+                .response(response)
+                .status(response.getStatusCode().value())
+                .durationMs(System.currentTimeMillis() - startMs)
+                .build()
+        );
+        return response;
     }
+
 }
