@@ -28,10 +28,10 @@ public class TaskSummaryAssembler implements RepresentationModelAssembler<Task, 
 
         return EntityModel.of(
             response,
-            linkTo(methodOn(TaskController.class).getTask(task.getId())).withSelfRel(),
-            linkTo(methodOn(TaskController.class).toggleTask(task.getId())).withRel("toggle"),
-            linkTo(methodOn(TaskController.class).updateTask(task.getId(), null)).withRel("update"),
-            linkTo(methodOn(TaskController.class).deleteTask(task.getId())).withRel("delete")
+            linkTo(methodOn(TaskController.class).getTask(task.getId(), null)).withSelfRel(),
+            linkTo(methodOn(TaskController.class).toggleTask(task.getId(), null)).withRel("toggle"),
+            linkTo(methodOn(TaskController.class).updateTask(task.getId(), null, null)).withRel("update"),
+            linkTo(methodOn(TaskController.class).deleteTask(task.getId(), null)).withRel("delete")
         );
     }
 }
