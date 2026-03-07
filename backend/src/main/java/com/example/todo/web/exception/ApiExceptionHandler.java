@@ -1,9 +1,10 @@
 package com.example.todo.web.exception;
 
 import com.example.todo.application.exception.ApiException;
+import com.example.todo.domain.model.LogPayload;
+import com.example.todo.infrastructure.repository.LogRepository;
 import com.example.todo.web.dto.ApiErrorResponse;
 import lombok.extern.slf4j.Slf4j;
-import net.logstash.logback.argument.StructuredArguments;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -11,15 +12,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 @RestControllerAdvice
 @Slf4j
 public class ApiExceptionHandler {
-
+    LogRepository logRepository;
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiErrorResponse> handleApiException(ApiException ex) {
         return buildResponse(ex.getStatus(), ex.getMessage(), ex);
@@ -32,7 +31,7 @@ public class ApiExceptionHandler {
             errors.put(error.getField(), error.getDefaultMessage());
         }
         ApiErrorResponse body = createBody(HttpStatus.BAD_REQUEST, "Validation failed", errors);
-        return logAndReturn(body, HttpStatus.BAD_REQUEST, ex);
+        return logAndReturn(body, ex);
     }
 
     @ExceptionHandler(Exception.class)
@@ -42,29 +41,28 @@ public class ApiExceptionHandler {
 
     private ResponseEntity<ApiErrorResponse> buildResponse(HttpStatus status, String message, Exception ex) {
         ApiErrorResponse body = createBody(status, message, null);
-        return logAndReturn(body, status, ex);
+        return logAndReturn(body, ex);
     }
 
-    private ApiErrorResponse createBody(HttpStatus status, String message, Map<String, String> errors) {
-        HttpStatus safeStatus = Objects.requireNonNull(status, "status must not be null");
-        
+    private ApiErrorResponse createBody(HttpStatus status, String message, Map<String, String> errors) {        
         return new ApiErrorResponse(
-            safeStatus.value(),
-            Instant.now().toString(),
+            status.value(),
             message,
             errors
         );
     }
 
-    private ResponseEntity<ApiErrorResponse> logAndReturn(ApiErrorResponse body, HttpStatus status, Exception ex) {
-        HttpStatus safeStatus = Objects.requireNonNull(status, "status must not be null");
-
-        log.error(
-            "api_exception",
-            StructuredArguments.keyValue("status", safeStatus.value()),
-            StructuredArguments.keyValue("body", body),
-            ex
+    private ResponseEntity<ApiErrorResponse> logAndReturn(ApiErrorResponse body, Exception ex) {
+        logRepository.error(
+                body.message(),
+                LogPayload.builder()
+                        .request(null)
+                        .response(body)
+                        .status(body.status())
+                        .durationMs(null)
+                        .build(),
+                ex
         );
-        return ResponseEntity.status(safeStatus).body(body);
+        return ResponseEntity.status(body.status()).body(body);
     }
 }
