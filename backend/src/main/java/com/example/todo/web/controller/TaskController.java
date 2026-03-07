@@ -1,6 +1,8 @@
 package com.example.todo.web.controller;
 
 import com.example.todo.application.service.TaskService;
+import com.example.todo.domain.model.User;
+import com.example.todo.infrastructure.config.CustomUserDetails;
 import com.example.todo.web.assembler.TaskResponseAssembler;
 import com.example.todo.web.assembler.TaskSummaryAssembler;
 import com.example.todo.domain.model.LogPayload;
@@ -14,6 +16,7 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,10 +39,12 @@ public class TaskController {
     private final LogRepository logRepository;
 
     @GetMapping
-    public CollectionModel<EntityModel<TaskSummaryResponse>> listTasks() {
+    public CollectionModel<EntityModel<TaskSummaryResponse>> listTasks(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         long startMs = System.currentTimeMillis();
+        User user = userDetails.getUser();
         CollectionModel<EntityModel<TaskSummaryResponse>> model =
-            taskSummaryAssembler.toCollectionModel(taskService.getAll());
+            taskSummaryAssembler.toCollectionModel(taskService.getAll(user));
         logRepository.info(
                 "listTasks",
                 LogPayload.builder()
@@ -52,10 +57,12 @@ public class TaskController {
     }
 
     @GetMapping("/{id}")
-    public EntityModel<?> getTask(@PathVariable Long id) {
+    public EntityModel<?> getTask(@PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         long startMs = System.currentTimeMillis();
-        
-        EntityModel<?> model = taskResponseAssembler.toModel(taskService.getById(id));
+        User user = userDetails.getUser();
+
+        EntityModel<?> model = taskResponseAssembler.toModel(taskService.getById(id, user));
 
         logRepository.info(
             "getTask",
@@ -70,11 +77,13 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<EntityModel<?>> createTask(@Valid @RequestBody TaskCreateRequest request) {
+    public ResponseEntity<EntityModel<?>> createTask(@Valid @RequestBody TaskCreateRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         long startMs = System.currentTimeMillis();
+        User user = userDetails.getUser();
 
         EntityModel<?> model = taskResponseAssembler.toModel(
-            taskService.create(request.title(), request.description(), request.tagIds())
+            taskService.create(request.title(), request.description(), request.tagIds(), user)
         );
 
         logRepository.info(
@@ -90,10 +99,12 @@ public class TaskController {
     }
 
     @PutMapping("/{id}")
-    public EntityModel<?> updateTask(@PathVariable Long id, @Valid @RequestBody TaskUpdateRequest request) {
+    public EntityModel<?> updateTask(@PathVariable Long id, @Valid @RequestBody TaskUpdateRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         long startMs = System.currentTimeMillis();
+        User user = userDetails.getUser();
         EntityModel<?> model = taskResponseAssembler.toModel(
-            taskService.update(id, request.title(), request.description(), request.completed(), request.tagIds())
+            taskService.update(id, request.title(), request.description(), request.completed(), request.tagIds(), user)
         );
 
         logRepository.info(
@@ -109,9 +120,11 @@ public class TaskController {
     }
 
     @PostMapping("/{id}/toggle")
-    public EntityModel<?> toggleTask(@PathVariable Long id) {
+    public EntityModel<?> toggleTask(@PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         long startMs = System.currentTimeMillis();
-        EntityModel<?> model = taskResponseAssembler.toModel(taskService.toggle(id));
+        User user = userDetails.getUser();
+        EntityModel<?> model = taskResponseAssembler.toModel(taskService.toggle(id, user));
 
         logRepository.info(
             "toggleTask",
@@ -126,9 +139,11 @@ public class TaskController {
     }
 
     @PostMapping("/{id}/tags/{tagId}")
-    public EntityModel<?> addTag(@PathVariable Long id, @PathVariable Long tagId) {
+    public EntityModel<?> addTag(@PathVariable Long id, @PathVariable Long tagId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         long startMs = System.currentTimeMillis();
-        EntityModel<?> model = taskResponseAssembler.toModel(taskService.addTag(id, tagId));
+        User user = userDetails.getUser();
+        EntityModel<?> model = taskResponseAssembler.toModel(taskService.addTag(id, tagId, user));
 
         logRepository.info(
             "addTag",
@@ -143,9 +158,11 @@ public class TaskController {
     }
 
     @DeleteMapping("/{id}/tags/{tagId}")
-    public EntityModel<?> removeTag(@PathVariable Long id, @PathVariable Long tagId) {
+    public EntityModel<?> removeTag(@PathVariable Long id, @PathVariable Long tagId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         long startMs = System.currentTimeMillis();
-        EntityModel<?> model = taskResponseAssembler.toModel(taskService.removeTag(id, tagId));
+        User user = userDetails.getUser();
+        EntityModel<?> model = taskResponseAssembler.toModel(taskService.removeTag(id, tagId, user));
 
         logRepository.info(
             "removeTag",
@@ -160,9 +177,11 @@ public class TaskController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteTask(@PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         long startMs = System.currentTimeMillis();
-        taskService.delete(id);
+        User user = userDetails.getUser();
+        taskService.delete(id, user);
 
         ResponseEntity<Void> response = ResponseEntity.noContent().build();
         logRepository.info(

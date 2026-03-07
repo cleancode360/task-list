@@ -30,8 +30,6 @@ Environment variables (optional):
 - `SPRING_DATASOURCE_URL` (default: `jdbc:postgresql://localhost:5432/todo`)
 - `SPRING_DATASOURCE_USERNAME` (default: `todo`)
 - `SPRING_DATASOURCE_PASSWORD` (default: `todo`)
-- `APP_USERNAME` (default: `admin`)
-- `APP_PASSWORD` (default: `admin`)
 - `APP_CORS_ALLOWED_ORIGINS` (default: `http://localhost:5173`)
 
 ### Frontend
@@ -76,7 +74,6 @@ export TF_VAR_environment="dev"
 export TF_VAR_aws_region="us-east-1"
 export TF_VAR_ssm_param_prefix="todo-dev"
 export TF_VAR_db_username="todo"
-export TF_VAR_app_username="admin"
 export TF_VAR_frontend_branch="master"
 export TF_VAR_rds_multi_az="false"
 export TF_VAR_rds_deletion_protection="false"
@@ -89,7 +86,6 @@ export TF_VAR_alert_email=""
 3. Provide sensitive values via environment variables:
 ```bash
 export TF_VAR_db_password="change-me"
-export TF_VAR_app_password="change-me"
 ```
 
 4. Apply infrastructure:
@@ -191,11 +187,9 @@ Set these repository variables/secrets:
   - `TF_VAR_ENVIRONMENT`
   - `SSM_PARAM_PREFIX`
   - `TF_VAR_DB_USERNAME`
-  - `TF_VAR_APP_USERNAME`
 - Secrets:
   - `AWS_GITHUB_ACTIONS_ROLE_ARN`
   - `TF_VAR_DB_PASSWORD`
-  - `TF_VAR_APP_PASSWORD`
 
 SSM parameter path prefix is controlled by `SSM_PARAM_PREFIX` (without leading slash, example: `todo-dev`) and used by both Terraform and deploy workflows.
 
@@ -207,26 +201,50 @@ SSM parameter path prefix is controlled by `SSM_PARAM_PREFIX` (without leading s
 - The Amplify app ID is written by Terraform to SSM and resolved by workflows at deploy time
 
 ## Auth
-The API is protected with HTTP Basic auth. The UI prompts for username/password and uses those credentials for API calls.
-Clients can validate credentials via `POST /api/auth/login`.
+The app supports multiple users with session-based authentication. Users register via the UI or `POST /api/auth/register`, then log in to receive a `JSESSIONID` session cookie. Each user's tasks and tags are fully isolated.
+
+### Endpoints
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/api/auth/register` | No | Create a new account |
+| POST | `/api/auth/login` | No | Log in and start a session |
+| GET | `/api/auth/me` | Yes | Get current session user |
+| POST | `/api/auth/logout` | Yes | Invalidate session |
+
+### Data isolation
+Tasks and tags are scoped per user. A user can only read, update, and delete their own data.
 
 ## API examples (HATEOAS)
 ```bash
-curl -u admin:admin http://localhost:8080/api/tasks
-curl -u admin:admin http://localhost:8080/api/tasks/1
-curl -u admin:admin -H "Content-Type: application/json" \
+# Register a new user
+curl -c cookies.txt -H "Content-Type: application/json" \
+  -d '{"username":"alice","password":"secret123"}' \
+  http://localhost:8080/api/auth/register
+
+# Log in (stores session cookie)
+curl -c cookies.txt -H "Content-Type: application/json" \
+  -d '{"username":"alice","password":"secret123"}' \
+  http://localhost:8080/api/auth/login
+
+# Use the session cookie for subsequent requests
+curl -b cookies.txt http://localhost:8080/api/tasks
+curl -b cookies.txt http://localhost:8080/api/tasks/1
+curl -b cookies.txt -H "Content-Type: application/json" \
   -d '{"title":"First task","description":"Write docs"}' \
   http://localhost:8080/api/tasks
-curl -u admin:admin http://localhost:8080/api/tags
-curl -u admin:admin -H "Content-Type: application/json" \
+curl -b cookies.txt http://localhost:8080/api/tags
+curl -b cookies.txt -H "Content-Type: application/json" \
   -d '{"name":"work"}' \
   http://localhost:8080/api/tags
-curl -u admin:admin -X PUT -H "Content-Type: application/json" \
+curl -b cookies.txt -X PUT -H "Content-Type: application/json" \
   -d '{"name":"personal"}' \
   http://localhost:8080/api/tags/1
-curl -u admin:admin -X DELETE http://localhost:8080/api/tags/1
-curl -u admin:admin -X POST http://localhost:8080/api/tasks/1/tags/2
-curl -u admin:admin -X DELETE http://localhost:8080/api/tasks/1/tags/2
+curl -b cookies.txt -X DELETE http://localhost:8080/api/tags/1
+curl -b cookies.txt -X POST http://localhost:8080/api/tasks/1/tags/2
+curl -b cookies.txt -X DELETE http://localhost:8080/api/tasks/1/tags/2
+
+# Log out
+curl -b cookies.txt -X POST http://localhost:8080/api/auth/logout
 ```
 
 HATEOAS links are exposed in `_links` for each entity to guide updates, deletes, and toggles.

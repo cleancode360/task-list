@@ -1,6 +1,8 @@
 package com.example.todo.web.controller;
 
 import com.example.todo.application.service.TagService;
+import com.example.todo.domain.model.User;
+import com.example.todo.infrastructure.config.CustomUserDetails;
 import com.example.todo.web.assembler.TagResponseAssembler;
 import com.example.todo.web.dto.TagCreateRequest;
 import com.example.todo.web.dto.TagResponse;
@@ -11,6 +13,7 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,29 +32,39 @@ public class TagController {
     private final TagResponseAssembler tagResponseAssembler;
 
     @GetMapping
-    public CollectionModel<EntityModel<TagResponse>> listTags() {
-        return tagResponseAssembler.toCollectionModel(tagService.getAll());
+    public CollectionModel<EntityModel<TagResponse>> listTags(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        return tagResponseAssembler.toCollectionModel(tagService.getAll(user));
     }
 
     @GetMapping("/{id}")
-    public EntityModel<?> getTag(@PathVariable Long id) {
-        return tagResponseAssembler.toModel(tagService.getById(id));
+    public EntityModel<?> getTag(@PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        return tagResponseAssembler.toModel(tagService.getById(id, user));
     }
 
     @PostMapping
-    public ResponseEntity<EntityModel<?>> createTag(@Valid @RequestBody TagCreateRequest request) {
-        EntityModel<?> model = tagResponseAssembler.toModel(tagService.create(request.name()));
+    public ResponseEntity<EntityModel<?>> createTag(@Valid @RequestBody TagCreateRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        EntityModel<?> model = tagResponseAssembler.toModel(tagService.create(request.name(), user));
         return ResponseEntity.status(HttpStatus.CREATED).body(model);
     }
 
     @PutMapping("/{id}")
-    public EntityModel<?> updateTag(@PathVariable Long id, @Valid @RequestBody TagUpdateRequest request) {
-        return tagResponseAssembler.toModel(tagService.update(id, request.name()));
+    public EntityModel<?> updateTag(@PathVariable Long id, @Valid @RequestBody TagUpdateRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        return tagResponseAssembler.toModel(tagService.update(id, request.name(), user));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTag(@PathVariable Long id) {
-        tagService.delete(id);
+    public ResponseEntity<Void> deleteTag(@PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        tagService.delete(id, user);
         return ResponseEntity.noContent().build();
     }
 }

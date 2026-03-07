@@ -2,6 +2,7 @@ package com.example.todo.application.service;
 
 import com.example.todo.application.exception.ApiException;
 import com.example.todo.domain.model.Tag;
+import com.example.todo.domain.model.User;
 import com.example.todo.infrastructure.repository.TagRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -16,28 +17,30 @@ public class TagService {
     private final TagRepository tagRepository;
 
     @Transactional(readOnly = true)
-    public List<Tag> getAll() {
-        return tagRepository.findAll();
+    public List<Tag> getAll(User user) {
+        return tagRepository.findAllByUser(user);
     }
 
     @Transactional(readOnly = true)
-    public Tag getById(Long id) {
-        return tagRepository.findById(id)
+    public Tag getById(Long id, User user) {
+        return tagRepository.findByIdAndUser(id, user)
             .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Tag not found: " + id));
     }
 
     @Transactional
-    public Tag create(String name) {
-        tagRepository.findByNameIgnoreCase(name).ifPresent(existing -> {
+    public Tag create(String name, User user) {
+        tagRepository.findByNameIgnoreCaseAndUser(name, user).ifPresent(existing -> {
             throw new ApiException(HttpStatus.CONFLICT, "Tag already exists: " + name);
         });
-        return tagRepository.save(new Tag(name));
+        Tag tag = new Tag(name);
+        tag.setUser(user);
+        return tagRepository.save(tag);
     }
 
     @Transactional
-    public Tag update(Long id, String name) {
-        Tag tag = getById(id);
-        tagRepository.findByNameIgnoreCase(name)
+    public Tag update(Long id, String name, User user) {
+        Tag tag = getById(id, user);
+        tagRepository.findByNameIgnoreCaseAndUser(name, user)
             .filter(existing -> !existing.getId().equals(id))
             .ifPresent(existing -> {
                 throw new ApiException(HttpStatus.CONFLICT, "Tag already exists: " + name);
@@ -47,8 +50,8 @@ public class TagService {
     }
 
     @Transactional
-    public void delete(Long id) {
-        Tag tag = getById(id);
+    public void delete(Long id, User user) {
+        Tag tag = getById(id, user);
         tagRepository.delete(tag);
     }
 }

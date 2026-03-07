@@ -22,11 +22,14 @@ export default function NavBar({ auth }) {
               </li>
             </ul>
           )}
-          <div className="ms-auto">
+          <div className="ms-auto d-flex align-items-center gap-3">
             {auth.isAuthenticated ? (
-              <button className="btn btn-outline-light" onClick={auth.onLogout}>
-                Logout
-              </button>
+              <>
+                <span className="text-light">{auth.username}</span>
+                <button className="btn btn-outline-light" onClick={auth.onLogout}>
+                  Logout
+                </button>
+              </>
             ) : (
               <Link className="btn btn-outline-light" to="/login">
                 Login
