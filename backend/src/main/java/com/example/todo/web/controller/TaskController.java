@@ -5,12 +5,11 @@ import com.example.todo.domain.model.User;
 import com.example.todo.infrastructure.config.CustomUserDetails;
 import com.example.todo.web.assembler.TaskResponseAssembler;
 import com.example.todo.web.assembler.TaskSummaryAssembler;
-import com.example.todo.domain.model.LogPayload;
-import com.example.todo.infrastructure.repository.LogRepository;
 import com.example.todo.web.dto.TaskCreateRequest;
 import com.example.todo.web.dto.TaskSummaryResponse;
 import com.example.todo.web.dto.TaskUpdateRequest;
 import jakarta.validation.Valid;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -26,8 +25,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/tasks")
 @RequiredArgsConstructor
@@ -36,64 +33,27 @@ public class TaskController {
     private final TaskService taskService;
     private final TaskSummaryAssembler taskSummaryAssembler;
     private final TaskResponseAssembler taskResponseAssembler;
-    private final LogRepository logRepository;
 
     @GetMapping
     public CollectionModel<EntityModel<TaskSummaryResponse>> listTasks(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        long startMs = System.currentTimeMillis();
         User user = userDetails.getUser();
-        CollectionModel<EntityModel<TaskSummaryResponse>> model =
-            taskSummaryAssembler.toCollectionModel(taskService.getAll(user));
-        logRepository.info(
-                "listTasks",
-                LogPayload.builder()
-                        .request(null)
-                        .response(model)
-                        .status(HttpStatus.OK.value())
-                        .durationMs(System.currentTimeMillis() - startMs)
-                        .build());
-        return model;
+        return taskSummaryAssembler.toCollectionModel(Objects.requireNonNull(taskService.getAll(user)));
     }
 
     @GetMapping("/{id}")
     public EntityModel<?> getTask(@PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        long startMs = System.currentTimeMillis();
         User user = userDetails.getUser();
-
-        EntityModel<?> model = taskResponseAssembler.toModel(taskService.getById(id, user));
-
-        logRepository.info(
-            "getTask",
-            LogPayload.builder()
-                .request(Map.of("id", id))
-                .response(model)
-                .status(HttpStatus.OK.value())
-                .durationMs(System.currentTimeMillis() - startMs)
-                .build()
-        );
-        return model;
+        return taskResponseAssembler.toModel(taskService.getById(id, user));
     }
 
     @PostMapping
     public ResponseEntity<EntityModel<?>> createTask(@Valid @RequestBody TaskCreateRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        long startMs = System.currentTimeMillis();
         User user = userDetails.getUser();
-
         EntityModel<?> model = taskResponseAssembler.toModel(
             taskService.create(request.title(), request.description(), request.tagIds(), user)
-        );
-
-        logRepository.info(
-            "createTask",
-            LogPayload.builder()
-                .request(request)
-                .response(model)
-                .status(HttpStatus.CREATED.value())
-                .durationMs(System.currentTimeMillis() - startMs)
-                .build()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(model);
     }
@@ -101,99 +61,38 @@ public class TaskController {
     @PutMapping("/{id}")
     public EntityModel<?> updateTask(@PathVariable Long id, @Valid @RequestBody TaskUpdateRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        long startMs = System.currentTimeMillis();
         User user = userDetails.getUser();
-        EntityModel<?> model = taskResponseAssembler.toModel(
+        return taskResponseAssembler.toModel(
             taskService.update(id, request.title(), request.description(), request.completed(), request.tagIds(), user)
         );
-
-        logRepository.info(
-            "updateTask",
-            LogPayload.builder()
-                .request(Map.of("id", id, "body", request))
-                .response(model)
-                .status(HttpStatus.OK.value())
-                .durationMs(System.currentTimeMillis() - startMs)
-                .build()
-        );
-        return model;
     }
 
     @PostMapping("/{id}/toggle")
     public EntityModel<?> toggleTask(@PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        long startMs = System.currentTimeMillis();
         User user = userDetails.getUser();
-        EntityModel<?> model = taskResponseAssembler.toModel(taskService.toggle(id, user));
-
-        logRepository.info(
-            "toggleTask",
-            LogPayload.builder()
-                .request(Map.of("id", id))
-                .response(model)
-                .status(HttpStatus.OK.value())
-                .durationMs(System.currentTimeMillis() - startMs)
-                .build()
-        );
-        return model;
+        return taskResponseAssembler.toModel(taskService.toggle(id, user));
     }
 
     @PostMapping("/{id}/tags/{tagId}")
     public EntityModel<?> addTag(@PathVariable Long id, @PathVariable Long tagId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        long startMs = System.currentTimeMillis();
         User user = userDetails.getUser();
-        EntityModel<?> model = taskResponseAssembler.toModel(taskService.addTag(id, tagId, user));
-
-        logRepository.info(
-            "addTag",
-            LogPayload.builder()
-                .request(Map.of("id", id, "tagId", tagId))
-                .response(model)
-                .status(HttpStatus.OK.value())
-                .durationMs(System.currentTimeMillis() - startMs)
-                .build()
-        );
-        return model;
+        return taskResponseAssembler.toModel(taskService.addTag(id, tagId, user));
     }
 
     @DeleteMapping("/{id}/tags/{tagId}")
     public EntityModel<?> removeTag(@PathVariable Long id, @PathVariable Long tagId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        long startMs = System.currentTimeMillis();
         User user = userDetails.getUser();
-        EntityModel<?> model = taskResponseAssembler.toModel(taskService.removeTag(id, tagId, user));
-
-        logRepository.info(
-            "removeTag",
-            LogPayload.builder()
-                .request(Map.of("id", id, "tagId", tagId))
-                .response(model)
-                .status(HttpStatus.OK.value())
-                .durationMs(System.currentTimeMillis() - startMs)
-                .build()
-        );
-        return model;
+        return taskResponseAssembler.toModel(taskService.removeTag(id, tagId, user));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        long startMs = System.currentTimeMillis();
         User user = userDetails.getUser();
         taskService.delete(id, user);
-
-        ResponseEntity<Void> response = ResponseEntity.noContent().build();
-        logRepository.info(
-            "deleteTask",
-            LogPayload.builder()
-                .request(Map.of("id", id))
-                .response(response)
-                .status(response.getStatusCode().value())
-                .durationMs(System.currentTimeMillis() - startMs)
-                .build()
-        );
-        return response;
+        return ResponseEntity.noContent().build();
     }
-
 }
