@@ -49,6 +49,33 @@ docker compose up --build
 - Frontend: `http://localhost:3000`
 - Backend: `http://localhost:8080`
 
+To reset the database (e.g. after schema changes), remove the volume and rebuild:
+```bash
+docker compose down -v && docker compose up --build
+```
+
+### Querying the database
+
+Connect to the local PostgreSQL instance (standalone or Docker Compose):
+```bash
+psql -h localhost -p 5432 -U todo -d todo
+```
+Password: `todo`
+
+If running via Docker Compose, you can also exec into the container:
+```bash
+docker compose exec db psql -U todo -d todo
+```
+
+Useful queries:
+```sql
+\dt                           -- list all tables
+SELECT * FROM users;          -- list registered users
+SELECT * FROM tasks;          -- list all tasks
+SELECT * FROM tags;           -- list all tags
+SELECT * FROM task_tags;      -- list task-tag associations
+```
+
 ## AWS deployment prerequisites
 
 Install and configure:

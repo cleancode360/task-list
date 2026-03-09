@@ -2,6 +2,8 @@ package com.example.todo.web.filter;
 
 import com.example.todo.domain.model.LogPayload;
 import com.example.todo.infrastructure.repository.LogRepository;
+import com.example.todo.web.exception.ApiExceptionHandler;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,10 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
-import com.example.todo.web.exception.ApiExceptionHandler;
-
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +27,7 @@ import java.util.Map;
 public class RequestCachingFilter extends OncePerRequestFilter {
 
     private final LogRepository logRepository;
+    private final ObjectMapper objectMapper;
 
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
@@ -53,8 +53,8 @@ public class RequestCachingFilter extends OncePerRequestFilter {
             long durationMs = System.currentTimeMillis() - startMs;
             int status = wrappedResponse.getStatus();
 
-            String requestBody = getBody(wrappedRequest.getContentAsByteArray());
-            String responseBody = getBody(wrappedResponse.getContentAsByteArray());
+            Object requestBody = parseJson(wrappedRequest.getContentAsByteArray());
+            Object responseBody = parseJson(wrappedResponse.getContentAsByteArray());
 
             Map<String, Object> requestPayload = new HashMap<>();
             requestPayload.put("method", wrappedRequest.getMethod());
@@ -81,10 +81,14 @@ public class RequestCachingFilter extends OncePerRequestFilter {
         }
     }
 
-    private String getBody(byte[] content) {
+    private Object parseJson(byte[] content) {
         if (content == null || content.length == 0) {
             return null;
         }
-        return new String(content, StandardCharsets.UTF_8);
+        try {
+            return objectMapper.readValue(content, Object.class);
+        } catch (Exception e) {
+            return new String(content, java.nio.charset.StandardCharsets.UTF_8);
+        }
     }
 }

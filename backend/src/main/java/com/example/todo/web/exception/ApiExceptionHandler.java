@@ -5,6 +5,7 @@ import com.example.todo.web.dto.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -33,12 +34,18 @@ public class ApiExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, "Validation failed", ex, request, errors);
     }
 
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiErrorResponse> handleAuthentication(AuthenticationException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), ex, request);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleUnexpectedException(Exception ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected internal server error", ex, request);
     }
 
-    private ResponseEntity<ApiErrorResponse> buildResponse(HttpStatus status, String message, Exception ex, HttpServletRequest request) {
+    private ResponseEntity<ApiErrorResponse>
+     buildResponse(HttpStatus status, String message, Exception ex, HttpServletRequest request) {
         return buildResponse(status, message, ex, request, null);
     }
 
