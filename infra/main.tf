@@ -18,10 +18,10 @@ terraform {
 
   # Uncomment after creating remote state resources.
   # backend "s3" {
-  #   bucket         = "todo-terraform-state"
+  #   bucket         = "#{PROJECT_NAME}#-terraform-state"
   #   key            = "aws/eks-fargate/terraform.tfstate"
   #   region         = "us-east-1"
-  #   dynamodb_table = "todo-terraform-locks"
+  #   dynamodb_table = "#{PROJECT_NAME}#-terraform-locks"
   #   encrypt        = true
   # }
 }
@@ -34,6 +34,8 @@ data "aws_caller_identity" "current" {}
 
 locals {
   name_prefix = "${var.project_name}-${var.environment}"
+  k8s_namespace = var.k8s_namespace
+  k8s_log_group = "/eks/${var.project_name}-app"
   tags = {
     Project     = var.project_name
     Environment = var.environment

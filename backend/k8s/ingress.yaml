@@ -1,8 +1,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: todo-backend
-  namespace: todo-app
+  name: #{PROJECT_NAME}#-backend
+  namespace: #{K8S_NAMESPACE}#
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
@@ -17,6 +17,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: todo-backend
+                name: #{PROJECT_NAME}#-backend
                 port:
                   number: 80

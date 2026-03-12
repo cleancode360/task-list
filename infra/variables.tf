@@ -1,13 +1,11 @@
 variable "aws_region" {
   description = "AWS region where resources are provisioned."
   type        = string
-  default     = "us-east-1"
 }
 
 variable "project_name" {
   description = "Project slug used in resource names."
   type        = string
-  default     = "todo"
 }
 
 variable "environment" {
@@ -19,18 +17,6 @@ variable "environment" {
 variable "github_repository" {
   description = "GitHub repository in owner/repo format."
   type        = string
-}
-
-variable "github_oauth_token" {
-  description = "GitHub OAuth token for Amplify connection."
-  type        = string
-  sensitive   = true
-}
-
-variable "db_name" {
-  description = "PostgreSQL database name."
-  type        = string
-  default     = "todo"
 }
 
 variable "db_username" {
@@ -63,14 +49,58 @@ variable "frontend_branch" {
   default     = "master"
 }
 
-variable "backend_image_tag" {
-  description = "Default backend image tag for initial deployment."
-  type        = string
-  default     = "latest"
+variable "rds_multi_az" {
+  description = "Enable Multi-AZ deployment for RDS."
+  type        = bool
+  default     = true
 }
 
-variable "backend_public_url" {
-  description = "Public URL of the backend ingress/ALB used by frontend."
+variable "rds_deletion_protection" {
+  description = "Enable deletion protection on the RDS instance."
+  type        = bool
+  default     = true
+}
+
+variable "rds_skip_final_snapshot" {
+  description = "Skip creating a final DB snapshot on destroy."
+  type        = bool
+  default     = false
+}
+
+variable "eks_public_endpoint" {
+  description = "Allow public access to the EKS API endpoint."
+  type        = bool
+  default     = true
+}
+
+variable "cloudwatch_retention_days" {
+  description = "CloudWatch Logs retention in days."
+  type        = number
+  default     = 365
+}
+
+variable "alert_email" {
+  description = "Optional email address subscribed to infrastructure alarms."
   type        = string
   default     = ""
+}
+
+variable "k8s_namespace" {
+  description = "Kubernetes namespace used for backend workloads."
+  type        = string
+
+  validation {
+    condition     = trimspace(var.k8s_namespace) != ""
+    error_message = "k8s_namespace must be a non-empty string."
+  }
+}
+
+variable "ssm_param_prefix" {
+  description = "SSM parameter path prefix without leading slash (example: todo-dev)."
+  type        = string
+
+  validation {
+    condition     = !startswith(var.ssm_param_prefix, "/") && !endswith(var.ssm_param_prefix, "/")
+    error_message = "ssm_param_prefix must not start or end with '/'. Example: todo-dev."
+  }
 }

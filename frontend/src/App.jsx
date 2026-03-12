@@ -1,31 +1,59 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import LoginPage from "./pages/LoginPage.jsx";
+import RegisterPage from "./pages/RegisterPage.jsx";
 import TaskListPage from "./pages/TaskListPage.jsx";
 import TaskDetailPage from "./pages/TaskDetailPage.jsx";
 import TagPage from "./pages/TagPage.jsx";
 import NavBar from "./components/NavBar.jsx";
-import { clearAuth } from "./api/client.js";
-
-const getStoredAuth = () => {
-  const raw = localStorage.getItem("todoAuth");
-  return !!raw;
-};
+import { auth } from "./api/client.js";
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(getStoredAuth());
+  const [username, setUsername] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    auth.me().then((data) => {
+      if (data?.username) {
+        setUsername(data.username);
+      }
+      setLoading(false);
+    });
+  }, []);
+
+  const isAuthenticated = !!username;
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await auth.logout();
+    } catch {
+      // ignore
+    }
+    setUsername(null);
+  }, []);
+
+  const handleLoginSuccess = useCallback((name) => {
+    setUsername(name);
+  }, []);
 
   const authContext = useMemo(
     () => ({
       isAuthenticated,
-      onLogout: () => {
-        clearAuth();
-        setIsAuthenticated(false);
-      },
-      onLoginSuccess: () => setIsAuthenticated(true),
+      username,
+      onLogout: handleLogout,
     }),
-    [isAuthenticated]
+    [isAuthenticated, username, handleLogout]
   );
+
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
+        <div className="spinner-border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
@@ -35,12 +63,22 @@ export default function App() {
           <Route
             path="/"
             element={
-              isAuthenticated ? <Navigate to="/tasks" replace /> : <LoginPage auth={authContext} />
+              isAuthenticated ? <Navigate to="/tasks" replace /> : <Navigate to="/login" replace />
             }
           />
           <Route
             path="/login"
-            element={<LoginPage auth={authContext} />}
+            element={
+              isAuthenticated
+                ? <Navigate to="/tasks" replace />
+                : <LoginPage onLoginSuccess={handleLoginSuccess} />
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              isAuthenticated ? <Navigate to="/tasks" replace /> : <RegisterPage />
+            }
           />
           <Route
             path="/tasks"

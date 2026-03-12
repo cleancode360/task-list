@@ -30,8 +30,6 @@ Environment variables (optional):
 - `SPRING_DATASOURCE_URL` (default: `jdbc:postgresql://localhost:5432/todo`)
 - `SPRING_DATASOURCE_USERNAME` (default: `todo`)
 - `SPRING_DATASOURCE_PASSWORD` (default: `todo`)
-- `APP_USERNAME` (default: `admin`)
-- `APP_PASSWORD` (default: `admin`)
 - `APP_CORS_ALLOWED_ORIGINS` (default: `http://localhost:5173`)
 
 ### Frontend
@@ -51,6 +49,33 @@ docker compose up --build
 - Frontend: `http://localhost:3000`
 - Backend: `http://localhost:8080`
 
+To reset the database (e.g. after schema changes), remove the volume and rebuild:
+```bash
+docker compose down -v && docker compose up --build
+```
+
+### Querying the database
+
+Connect to the local PostgreSQL instance (standalone or Docker Compose):
+```bash
+psql -h localhost -p 5432 -U todo -d todo
+```
+Password: `todo`
+
+If running via Docker Compose, you can also exec into the container:
+```bash
+docker compose exec db psql -U todo -d todo
+```
+
+Useful queries:
+```sql
+\dt                           -- list all tables
+SELECT * FROM users;          -- list registered users
+SELECT * FROM tasks;          -- list all tasks
+SELECT * FROM tags;           -- list all tags
+SELECT * FROM task_tags;      -- list task-tag associations
+```
+
 ## AWS deployment prerequisites
 
 Install and configure:
@@ -67,25 +92,27 @@ Install and configure:
 cd infra
 ```
 
-2. Create a local `terraform.tfvars` file (non-sensitive values):
-```hcl
-aws_region         = "us-east-1"
-project_name       = "todo"
-environment        = "dev"
-github_repository  = "your-org/your-repo"
-db_name            = "todo"
-db_username        = "todo"
-app_username       = "admin"
-frontend_branch    = "master"
-backend_image_tag  = "latest"
-backend_public_url = ""
+2. For local runs, provide non-sensitive values via environment variables:
+```bash
+export TF_VAR_project_name="todo"
+export TF_VAR_k8s_namespace="todo-app"
+export TF_VAR_github_repository="your-org/your-repo"
+export TF_VAR_environment="dev"
+export TF_VAR_aws_region="us-east-1"
+export TF_VAR_ssm_param_prefix="todo-dev"
+export TF_VAR_db_username="todo"
+export TF_VAR_frontend_branch="master"
+export TF_VAR_rds_multi_az="false"
+export TF_VAR_rds_deletion_protection="false"
+export TF_VAR_rds_skip_final_snapshot="true"
+export TF_VAR_eks_public_endpoint="true"
+export TF_VAR_cloudwatch_retention_days="14"
+export TF_VAR_alert_email=""
 ```
 
 3. Provide sensitive values via environment variables:
 ```bash
-export TF_VAR_github_oauth_token="ghp_xxx"
 export TF_VAR_db_password="change-me"
-export TF_VAR_app_password="change-me"
 ```
 
 4. Apply infrastructure:
@@ -100,22 +127,27 @@ Terraform provisions:
 - EKS cluster with Fargate profiles
 - RDS PostgreSQL
 - ECR repository for backend image
+- SSM Parameter Store entries for infra outputs consumed by CI/CD
 - IAM roles/policies (including GitHub Actions role)
 - Amplify app and production branch
 - AWS Load Balancer Controller (via Helm)
+- CloudWatch log groups with configurable retention
+- CloudWatch alarms for RDS with SNS notifications
 
 ## Kubernetes deployment workflow
 
-1. Update placeholders before apply:
-- `backend/k8s/configmap.yaml`: replace `REPLACE_RDS_ENDPOINT` and `REPLACE_AMPLIFY_DOMAIN`
-- `backend/k8s/deployment.yaml`: replace `REPLACE_ECR_URL`
+1. Placeholder resolution:
+- `backend/k8s/configmap.yaml` uses `#{RDS_ENDPOINT}#`, `#{DB_NAME}#`, `#{AMPLIFY_DOMAIN}#`, `#{SECRETS_MANAGER_KEY}#`, and `#{AWS_REGION}#`
+- `backend/k8s/aws-logging.yaml` uses `#{AWS_REGION}#`
+- `backend/k8s/deployment.yaml` uses `#{IMAGE_URI}#`
+- In CI/CD, `deploy-backend.yml` resolves these values automatically (infra values from SSM, image URI from build step)
 
 2. Apply manifests:
 ```bash
 kubectl apply -f backend/k8s/namespace.yaml
 kubectl apply -f backend/k8s/aws-logging.yaml
+kubectl apply -f backend/k8s/service-account.yaml
 kubectl apply -f backend/k8s/configmap.yaml
-kubectl apply -f backend/k8s/external-secret.yaml
 kubectl apply -f backend/k8s/deployment.yaml
 kubectl apply -f backend/k8s/service.yaml
 kubectl apply -f backend/k8s/ingress.yaml
@@ -131,13 +163,18 @@ kubectl rollout status deployment/todo-backend -n todo-app
 
 ### CloudWatch Logs
 - Fargate log routing is configured by `backend/k8s/aws-logging.yaml`
-- Logs are sent to `/eks/todo-app`
+- Logs are sent to `/eks/todo-app` (retention controlled by `TF_VAR_cloudwatch_retention_days`)
 
 Useful commands:
 ```bash
 aws logs tail /eks/todo-app --follow
 kubectl logs -f deployment/todo-backend -n todo-app
 ```
+
+### CloudWatch alarms (RDS)
+- Terraform creates alarms for `CPUUtilization`, `FreeStorageSpace`, and `DatabaseConnections`
+- Alarm notifications are published to an SNS topic (`<project>-<environment>-infra-alerts`)
+- Set `TF_VAR_alert_email` to receive email notifications from the SNS topic
 
 ### Liveness and readiness probes
 Configured in `backend/k8s/deployment.yaml` and backed by Spring Actuator:
@@ -170,37 +207,71 @@ On push to `master`:
 Set these repository variables/secrets:
 - Variables:
   - `AWS_REGION`
-  - `EKS_CLUSTER_NAME`
-  - `ECR_REPOSITORY`
-  - `AMPLIFY_APP_ID`
   - `AMPLIFY_BRANCH_NAME`
-  - `BACKEND_PUBLIC_URL`
+  - `TF_VAR_PROJECT_NAME`
+  - `TF_VAR_K8S_NAMESPACE` (used by Terraform and backend deploy workflow as the Kubernetes namespace)
   - `TF_VAR_GITHUB_REPOSITORY`
+  - `TF_VAR_ENVIRONMENT`
+  - `SSM_PARAM_PREFIX`
   - `TF_VAR_DB_USERNAME`
-  - `TF_VAR_APP_USERNAME`
 - Secrets:
   - `AWS_GITHUB_ACTIONS_ROLE_ARN`
-  - `TF_VAR_GITHUB_OAUTH_TOKEN`
   - `TF_VAR_DB_PASSWORD`
-  - `TF_VAR_APP_PASSWORD`
+
+SSM parameter path prefix is controlled by `SSM_PARAM_PREFIX` (without leading slash, example: `todo-dev`) and used by both Terraform and deploy workflows.
 
 ## Amplify frontend hosting
 
 - Amplify app is provisioned via Terraform (`infra/amplify.tf`) as a hosting-only service
 - Frontend is built by GitHub Actions (`deploy-frontend.yml`) and deployed to Amplify via the AWS CLI
-- `VITE_API_BASE_URL` is injected at build time from the `BACKEND_PUBLIC_URL` GitHub Variable
-- After `terraform apply`, copy the `amplify_app_id` output into your GitHub Variable `AMPLIFY_APP_ID`
+- `VITE_API_BASE_URL` is injected at build time from SSM (`backend-public-url`, written by the backend deploy workflow)
+- The Amplify app ID is written by Terraform to SSM and resolved by workflows at deploy time
 
 ## Auth
-The API is protected with HTTP Basic auth. The UI prompts for username/password and uses those credentials for API calls.
+The app supports multiple users with session-based authentication. Users register via the UI or `POST /api/auth/register`, then log in to receive a `JSESSIONID` session cookie. Each user's tasks and tags are fully isolated.
+
+### Endpoints
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/api/auth/register` | No | Create a new account |
+| POST | `/api/auth/login` | No | Log in and start a session |
+| GET | `/api/auth/me` | Yes | Get current session user |
+| POST | `/api/auth/logout` | Yes | Invalidate session |
+
+### Data isolation
+Tasks and tags are scoped per user. A user can only read, update, and delete their own data.
 
 ## API examples (HATEOAS)
 ```bash
-curl -u admin:admin http://localhost:8080/api/tasks
-curl -u admin:admin http://localhost:8080/api/tasks/1
-curl -u admin:admin -H "Content-Type: application/json" \
+# Register a new user
+curl -c cookies.txt -H "Content-Type: application/json" \
+  -d '{"username":"alice","password":"secret123"}' \
+  http://localhost:8080/api/auth/register
+
+# Log in (stores session cookie)
+curl -c cookies.txt -H "Content-Type: application/json" \
+  -d '{"username":"alice","password":"secret123"}' \
+  http://localhost:8080/api/auth/login
+
+# Use the session cookie for subsequent requests
+curl -b cookies.txt http://localhost:8080/api/tasks
+curl -b cookies.txt http://localhost:8080/api/tasks/1
+curl -b cookies.txt -H "Content-Type: application/json" \
   -d '{"title":"First task","description":"Write docs"}' \
   http://localhost:8080/api/tasks
+curl -b cookies.txt http://localhost:8080/api/tags
+curl -b cookies.txt -H "Content-Type: application/json" \
+  -d '{"name":"work"}' \
+  http://localhost:8080/api/tags
+curl -b cookies.txt -X PUT -H "Content-Type: application/json" \
+  -d '{"name":"personal"}' \
+  http://localhost:8080/api/tags/1
+curl -b cookies.txt -X DELETE http://localhost:8080/api/tags/1
+curl -b cookies.txt -X POST http://localhost:8080/api/tasks/1/tags/2
+curl -b cookies.txt -X DELETE http://localhost:8080/api/tasks/1/tags/2
+
+# Log out
+curl -b cookies.txt -X POST http://localhost:8080/api/auth/logout
 ```
 
 HATEOAS links are exposed in `_links` for each entity to guide updates, deletes, and toggles.

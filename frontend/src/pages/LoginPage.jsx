@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { API_BASE_URL, setAuth } from "../api/client.js";
+import { Link, useLocation } from "react-router-dom";
+import { auth } from "../api/client.js";
 
-export default function LoginPage({ auth }) {
+export default function LoginPage({ onLoginSuccess }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const location = useLocation();
+  const justRegistered = location.state?.registered;
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -13,23 +16,8 @@ export default function LoginPage({ auth }) {
     setIsLoading(true);
 
     try {
-      const token = btoa(`${username}:${password}`);
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Basic ${token}`,
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data?.message || "Login failed");
-      }
-
-      setAuth(username, password);
-      auth.onLoginSuccess();
+      const data = await auth.login(username, password);
+      onLoginSuccess(data.username);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -42,10 +30,12 @@ export default function LoginPage({ auth }) {
       <div className="col-md-6 col-lg-5">
         <div className="card shadow-sm">
           <div className="card-body">
-            <h3 className="card-title mb-3">Login</h3>
-            <p className="text-muted">
-              Use the credentials from <code>application.yml</code> or env variables.
-            </p>
+            <h3 className="card-title mb-3">Sign in</h3>
+            {justRegistered && (
+              <div className="alert alert-success">
+                Account created successfully. Please sign in.
+              </div>
+            )}
             {error && <div className="alert alert-danger">{error}</div>}
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
@@ -71,6 +61,9 @@ export default function LoginPage({ auth }) {
                 {isLoading ? "Signing in..." : "Sign in"}
               </button>
             </form>
+            <p className="text-center mt-3 mb-0">
+              Don't have an account? <Link to="/register">Register</Link>
+            </p>
           </div>
         </div>
       </div>

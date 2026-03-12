@@ -1,15 +1,3 @@
-data "tls_certificate" "eks_oidc" {
-  url = module.eks.cluster_oidc_issuer_url
-}
-
-resource "aws_iam_openid_connect_provider" "eks" {
-  url             = module.eks.cluster_oidc_issuer_url
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = [data.tls_certificate.eks_oidc.certificates[0].sha1_fingerprint]
-
-  tags = local.tags
-}
-
 resource "aws_iam_policy" "fargate_secrets_access" {
   name        = "${local.name_prefix}-fargate-secrets-access"
   description = "Allow backend pods to read runtime secrets"
@@ -69,7 +57,7 @@ resource "aws_iam_openid_connect_provider" "github" {
 
 resource "aws_iam_role_policy_attachment" "github_actions_eks" {
   role       = aws_iam_role.github_actions.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  policy_arn = aws_iam_policy.github_actions_eks_describe.arn
 }
 
 resource "aws_iam_role_policy_attachment" "github_actions_ecr" {
@@ -100,4 +88,72 @@ resource "aws_iam_policy" "github_actions_amplify_deploy" {
 resource "aws_iam_role_policy_attachment" "github_actions_amplify" {
   role       = aws_iam_role.github_actions.name
   policy_arn = aws_iam_policy.github_actions_amplify_deploy.arn
+}
+
+resource "aws_iam_policy" "github_actions_infra_read" {
+  name        = "${local.name_prefix}-github-actions-infra-read"
+  description = "Allow GitHub Actions to read infrastructure outputs from SSM Parameter Store"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["ssm:GetParameter", "ssm:GetParametersByPath", "ssm:PutParameter"]
+        Resource = "arn:aws:ssm:*:*:parameter/${var.ssm_param_prefix}/*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "github_actions_infra_read" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.github_actions_infra_read.arn
+}
+
+resource "aws_iam_policy" "github_actions_eks_describe" {
+  name        = "${local.name_prefix}-github-actions-eks-describe"
+  description = "Allow GitHub Actions to resolve EKS cluster connection details"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["eks:DescribeCluster"]
+        Resource = module.eks.cluster_arn
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role" "backend_secrets" {
+  name = "${local.name_prefix}-backend-secrets-reader"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "pods.eks.amazonaws.com"
+        }
+        Action = ["sts:AssumeRole", "sts:TagSession"]
+      }
+    ]
+  })
+
+  tags = local.tags
+}
+
+resource "aws_iam_role_policy_attachment" "backend_secrets_access" {
+  role       = aws_iam_role.backend_secrets.name
+  policy_arn = aws_iam_policy.fargate_secrets_access.arn
+}
+
+resource "aws_eks_pod_identity_association" "backend_secrets" {
+  cluster_name    = module.eks.cluster_name
+  namespace       = local.k8s_namespace
+  service_account = "backend-secrets-sa"
+  role_arn        = aws_iam_role.backend_secrets.arn
 }
