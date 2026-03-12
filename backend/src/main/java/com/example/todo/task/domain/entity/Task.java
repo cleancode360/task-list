@@ -82,12 +82,10 @@ public class Task {
 
     public void addTag(Tag tag) {
         tags.add(tag);
-        tag.getTasks().add(this);
     }
 
     public void removeTag(Tag tag) {
         tags.remove(tag);
-        tag.getTasks().remove(this);
     }
 
     @Override

@@ -4,10 +4,12 @@ import com.example.todo.auth.domain.entity.User;
 import com.example.todo.auth.domain.gateway.UserGateway;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
 @Repository
+@Transactional
 @RequiredArgsConstructor
 public class JpaUserGateway implements UserGateway {
 

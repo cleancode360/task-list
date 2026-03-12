@@ -5,11 +5,13 @@ import com.example.todo.task.domain.entity.Task;
 import com.example.todo.task.domain.gateway.TaskGateway;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
+@Transactional
 @RequiredArgsConstructor
 public class JpaTaskGateway implements TaskGateway {
 

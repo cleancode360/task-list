@@ -20,7 +20,7 @@ public class SharedExceptionHandler {
 
     @ExceptionHandler(SharedException.class)
     public ResponseEntity<ApiErrorResponse> handleSharedException(SharedException ex, HttpServletRequest request) {
-        return buildResponse(ex.getStatus(), ex.getMessage(), ex, request);
+        return buildResponse(HttpStatus.valueOf(ex.getStatus()), ex.getMessage(), ex, request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
