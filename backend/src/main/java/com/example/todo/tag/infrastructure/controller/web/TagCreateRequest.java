@@ -1,9 +1,9 @@
-package com.example.todo.tag.infrastructure.controller;
+package com.example.todo.tag.infrastructure.controller.web;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record TagUpdateRequest(
+public record TagCreateRequest(
     @NotBlank
     @Size(max = 100)
     String name

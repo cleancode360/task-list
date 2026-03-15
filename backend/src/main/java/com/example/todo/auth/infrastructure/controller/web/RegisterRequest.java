@@ -1,4 +1,4 @@
-package com.example.todo.auth.infrastructure.controller;
+package com.example.todo.auth.infrastructure.controller.web;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

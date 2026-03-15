@@ -1,4 +1,4 @@
-package com.example.todo.task.infrastructure.gatewayadapter;
+package com.example.todo.task.infrastructure.gatewayadapter.jpa;
 
 import com.example.todo.auth.domain.entity.User;
 import com.example.todo.task.domain.entity.Task;

@@ -1,6 +1,6 @@
-package com.example.todo.task.infrastructure.controller;
+package com.example.todo.task.infrastructure.controller.web;
 
-import com.example.todo.tag.infrastructure.controller.TagResponse;
+import com.example.todo.tag.infrastructure.controller.web.TagResponse;
 import java.time.Instant;
 import java.util.List;
 import org.springframework.hateoas.server.core.Relation;

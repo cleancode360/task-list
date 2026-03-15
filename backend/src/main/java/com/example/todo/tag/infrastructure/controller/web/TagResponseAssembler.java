@@ -1,4 +1,4 @@
-package com.example.todo.tag.infrastructure.controller;
+package com.example.todo.tag.infrastructure.controller.web;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -16,10 +16,10 @@ public class TagResponseAssembler implements RepresentationModelAssembler<Tag, E
         TagResponse response = new TagResponse(tag.getId(), tag.getName());
         return EntityModel.of(
             response,
-            linkTo(methodOn(TagController.class).getTag(tag.getId(), null)).withSelfRel(),
-            linkTo(methodOn(TagController.class).updateTag(tag.getId(), null, null)).withRel("update"),
-            linkTo(methodOn(TagController.class).deleteTag(tag.getId(), null)).withRel("delete"),
-            linkTo(methodOn(TagController.class).listTags(null)).withRel("collection")
+            linkTo(methodOn(RESTTagController.class).getTag(tag.getId(), null)).withSelfRel(),
+            linkTo(methodOn(RESTTagController.class).updateTag(tag.getId(), null, null)).withRel("update"),
+            linkTo(methodOn(RESTTagController.class).deleteTag(tag.getId(), null)).withRel("delete"),
+            linkTo(methodOn(RESTTagController.class).listTags(null)).withRel("collection")
         );
     }
 }

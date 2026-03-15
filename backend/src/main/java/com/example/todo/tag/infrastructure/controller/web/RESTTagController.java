@@ -1,7 +1,7 @@
-package com.example.todo.tag.infrastructure.controller;
+package com.example.todo.tag.infrastructure.controller.web;
 
 import com.example.todo.auth.domain.entity.User;
-import com.example.todo.auth.infrastructure.gatewayadapter.CustomUserDetails;
+import com.example.todo.auth.infrastructure.gatewayadapter.security.CustomUserDetails;
 import com.example.todo.tag.application.usecase.TagService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/tags")
 @RequiredArgsConstructor
-public class TagController {
+public class RESTTagController {
 
     private final TagService tagService;
     private final TagResponseAssembler tagResponseAssembler;

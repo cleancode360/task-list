@@ -1,4 +1,4 @@
-package com.example.todo.tag.infrastructure.controller;
+package com.example.todo.tag.infrastructure.controller.web;
 
 import org.springframework.hateoas.server.core.Relation;
 

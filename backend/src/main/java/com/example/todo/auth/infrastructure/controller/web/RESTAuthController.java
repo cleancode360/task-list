@@ -1,7 +1,7 @@
-package com.example.todo.auth.infrastructure.controller;
+package com.example.todo.auth.infrastructure.controller.web;
 
 import com.example.todo.auth.application.usecase.UserService;
-import com.example.todo.auth.infrastructure.gatewayadapter.CustomUserDetails;
+import com.example.todo.auth.infrastructure.gatewayadapter.security.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-public class AuthController {
+public class RESTAuthController {
 
     private final AuthenticationManager authenticationManager;
     private final UserService userService;

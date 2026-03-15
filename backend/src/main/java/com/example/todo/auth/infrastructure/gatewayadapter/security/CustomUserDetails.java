@@ -1,4 +1,4 @@
-package com.example.todo.auth.infrastructure.gatewayadapter;
+package com.example.todo.auth.infrastructure.gatewayadapter.security;
 
 import com.example.todo.auth.domain.entity.User;
 import java.util.Collection;
