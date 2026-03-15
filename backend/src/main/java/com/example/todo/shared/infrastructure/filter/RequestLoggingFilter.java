@@ -57,25 +57,27 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             Object requestBody = parseJson(wrappedRequest.getContentAsByteArray());
             Object responseBody = parseJson(wrappedResponse.getContentAsByteArray());
 
-            Map<String, Object> requestPayload = new HashMap<>();
-            requestPayload.put("method", wrappedRequest.getMethod());
-            requestPayload.put("uri", wrappedRequest.getRequestURI());
-            requestPayload.put("body", requestBody);
-
             LogPayload payload = LogPayload.builder()
-                .request(requestPayload)
+                .request(requestBody)
                 .response(responseBody)
                 .status(status)
                 .durationMs(durationMs)
                 .build();
 
-            String label = wrappedRequest.getMethod() + " " + wrappedRequest.getRequestURI();
+            StringBuilder label = new StringBuilder(wrappedRequest.getMethod())
+                .append(" ")
+                .append(wrappedRequest.getRequestURI());
+
+            String queryString = wrappedRequest.getQueryString();
+            if (queryString != null) {
+                label.append("?").append(queryString);
+            }
 
             Exception ex = (Exception) wrappedRequest.getAttribute(SharedExceptionHandler.EXCEPTION_ATTRIBUTE);
             if (status >= 400 || ex != null) {
-                logRepository.error(label, payload, ex);
+                logRepository.error(label.toString(), payload, ex);
             } else {
-                logRepository.info(label, payload);
+                logRepository.info(label.toString(), payload);
             }
 
             wrappedResponse.copyBodyToResponse();
