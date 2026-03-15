@@ -1,7 +1,7 @@
 package com.example.todo.tag.infrastructure.controller.web;
 
 import com.example.todo.auth.domain.entity.User;
-import com.example.todo.auth.infrastructure.gatewayadapter.security.CustomUserDetails;
+import com.example.todo.auth.infrastructure.security.CustomUserDetails;
 import com.example.todo.tag.application.usecase.TagService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

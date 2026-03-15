@@ -1,7 +1,7 @@
 package com.example.todo.auth.infrastructure.controller.web;
 
 import com.example.todo.auth.application.usecase.UserService;
-import com.example.todo.auth.infrastructure.gatewayadapter.security.CustomUserDetails;
+import com.example.todo.auth.infrastructure.security.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
