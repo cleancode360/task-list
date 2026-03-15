@@ -15,7 +15,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JpaTaskGateway implements TaskGateway {
 
-    private final TaskJpaRepository jpaRepository;
+    private final JpaTaskRepository jpaRepository;
 
     @Override
     public List<Task> findAllByUser(User user) {

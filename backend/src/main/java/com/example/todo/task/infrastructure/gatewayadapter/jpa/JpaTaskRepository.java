@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
-interface TaskJpaRepository extends JpaRepository<Task, Long> {
+interface JpaTaskRepository extends JpaRepository<Task, Long> {
     @EntityGraph(attributePaths = "tags")
     List<Task> findAllByUser(User user);
 

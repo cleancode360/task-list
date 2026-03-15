@@ -15,7 +15,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JpaTagGateway implements TagGateway {
 
-    private final TagJpaRepository jpaRepository;
+    private final JpaTagRepository jpaRepository;
 
     @Override
     public List<Tag> findAllByUser(User user) {

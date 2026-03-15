@@ -13,7 +13,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JpaUserGateway implements UserGateway {
 
-    private final UserJpaRepository jpaRepository;
+    private final JpaUserRepository jpaRepository;
 
     @Override
     public Optional<User> findByUsername(String username) {
