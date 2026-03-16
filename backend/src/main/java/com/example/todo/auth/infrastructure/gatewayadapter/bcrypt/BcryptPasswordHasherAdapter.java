@@ -1,13 +1,13 @@
 package com.example.todo.auth.infrastructure.gatewayadapter.bcrypt;
 
-import com.example.todo.auth.domain.gateway.PasswordHasher;
+import com.example.todo.auth.domain.gateway.PasswordHasherGateway;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class BcryptPasswordHasher implements PasswordHasher {
+public class BcryptPasswordHasherAdapter implements PasswordHasherGateway {
 
     private final PasswordEncoder passwordEncoder;
 

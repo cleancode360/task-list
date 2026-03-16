@@ -13,7 +13,7 @@ import java.util.Optional;
 @Repository
 @Transactional
 @RequiredArgsConstructor
-public class JpaTagGateway implements TagGateway {
+public class JpaTagAdapter implements TagGateway {
 
     private final JpaTagRepository jpaRepository;
 

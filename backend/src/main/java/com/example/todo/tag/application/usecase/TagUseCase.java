@@ -8,7 +8,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class TagService {
+public class TagUseCase {
 
     private final TagGateway tagGateway;
 

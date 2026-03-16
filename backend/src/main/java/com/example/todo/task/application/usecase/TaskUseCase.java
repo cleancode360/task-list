@@ -10,7 +10,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class TaskService {
+public class TaskUseCase {
 
     private final TaskGateway taskGateway;
     private final TagGateway tagGateway;

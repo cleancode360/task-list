@@ -1,16 +1,16 @@
 package com.example.todo.auth.application.usecase;
 
 import com.example.todo.auth.domain.entity.User;
-import com.example.todo.auth.domain.gateway.PasswordHasher;
+import com.example.todo.auth.domain.gateway.PasswordHasherGateway;
 import com.example.todo.auth.domain.gateway.UserGateway;
 import com.example.todo.shared.domain.exception.SharedException;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class UserService {
+public class UserUseCase {
 
     private final UserGateway userGateway;
-    private final PasswordHasher passwordHasher;
+    private final PasswordHasherGateway passwordHasher;
 
     public User register(String username, String password) {
         userGateway.findByUsername(username).ifPresent(existing -> {

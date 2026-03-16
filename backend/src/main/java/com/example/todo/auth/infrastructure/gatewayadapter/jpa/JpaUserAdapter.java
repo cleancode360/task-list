@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 @Transactional
 @RequiredArgsConstructor
-public class JpaUserGateway implements UserGateway {
+public class JpaUserAdapter implements UserGateway {
 
     private final JpaUserRepository jpaRepository;
 

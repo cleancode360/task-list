@@ -2,7 +2,7 @@ package com.example.todo.task.infrastructure.controller.web;
 
 import com.example.todo.auth.domain.entity.User;
 import com.example.todo.auth.infrastructure.security.CustomUserDetails;
-import com.example.todo.task.application.usecase.TaskService;
+import com.example.todo.task.application.usecase.TaskUseCase;
 import jakarta.validation.Valid;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class RESTTaskController {
 
-    private final TaskService taskService;
+    private final TaskUseCase taskService;
     private final TaskSummaryAssembler taskSummaryAssembler;
     private final TaskResponseAssembler taskResponseAssembler;
 

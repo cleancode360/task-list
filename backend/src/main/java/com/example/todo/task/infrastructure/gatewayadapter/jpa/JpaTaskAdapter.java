@@ -13,7 +13,7 @@ import java.util.Optional;
 @Repository
 @Transactional
 @RequiredArgsConstructor
-public class JpaTaskGateway implements TaskGateway {
+public class JpaTaskAdapter implements TaskGateway {
 
     private final JpaTaskRepository jpaRepository;
 

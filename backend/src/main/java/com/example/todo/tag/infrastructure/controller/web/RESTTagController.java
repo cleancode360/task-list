@@ -2,7 +2,7 @@ package com.example.todo.tag.infrastructure.controller.web;
 
 import com.example.todo.auth.domain.entity.User;
 import com.example.todo.auth.infrastructure.security.CustomUserDetails;
-import com.example.todo.tag.application.usecase.TagService;
+import com.example.todo.tag.application.usecase.TagUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.CollectionModel;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class RESTTagController {
 
-    private final TagService tagService;
+    private final TagUseCase tagService;
     private final TagResponseAssembler tagResponseAssembler;
 
     @GetMapping

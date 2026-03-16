@@ -1,6 +1,6 @@
 package com.example.todo.auth.infrastructure.controller.web;
 
-import com.example.todo.auth.application.usecase.UserService;
+import com.example.todo.auth.application.usecase.UserUseCase;
 import com.example.todo.auth.infrastructure.security.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class RESTAuthController {
 
     private final AuthenticationManager authenticationManager;
-    private final UserService userService;
+    private final UserUseCase userService;
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {

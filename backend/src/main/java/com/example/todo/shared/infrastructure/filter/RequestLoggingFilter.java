@@ -1,7 +1,7 @@
 package com.example.todo.shared.infrastructure.filter;
 
 import com.example.todo.shared.domain.log.LogPayload;
-import com.example.todo.shared.domain.log.LogRepository;
+import com.example.todo.shared.domain.log.LogGateway;
 import com.example.todo.shared.infrastructure.exception.SharedExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -19,15 +19,13 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RequiredArgsConstructor
 public class RequestLoggingFilter extends OncePerRequestFilter {
 
-    private final LogRepository logRepository;
+    private final LogGateway logRepository;
     private final ObjectMapper objectMapper;
 
     @Override
