@@ -26,11 +26,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class RESTAuthController {
 
     private final AuthenticationManager authenticationManager;
-    private final UserUseCase userService;
+    private final UserUseCase userUseCase;
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        userService.register(request.username(), request.password());
+        userUseCase.register(request.username(), request.password());
         return ResponseEntity.status(HttpStatus.CREATED).body(new AuthResponse(request.username()));
     }
 
