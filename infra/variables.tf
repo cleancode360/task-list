@@ -31,18 +31,6 @@ variable "db_password" {
   sensitive   = true
 }
 
-variable "app_username" {
-  description = "Application basic auth username."
-  type        = string
-  default     = "admin"
-}
-
-variable "app_password" {
-  description = "Application basic auth password."
-  type        = string
-  sensitive   = true
-}
-
 variable "frontend_branch" {
   description = "Git branch tracked by Amplify."
   type        = string

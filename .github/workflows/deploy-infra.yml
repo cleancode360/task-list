@@ -29,8 +29,6 @@ jobs:
       TF_VAR_ssm_param_prefix: ${{ vars.SSM_PARAM_PREFIX }}
       TF_VAR_db_username: ${{ vars.DB_USERNAME }}
       TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
-      TF_VAR_app_username: ${{ vars.APP_USERNAME }}
-      TF_VAR_app_password: ${{ secrets.APP_PASSWORD }}
       TF_VAR_frontend_branch: ${{ vars.AMPLIFY_BRANCH_NAME }}
       TF_VAR_aws_region: ${{ vars.AWS_REGION }}
       TF_VAR_k8s_namespace: ${{ vars.K8S_NAMESPACE }}

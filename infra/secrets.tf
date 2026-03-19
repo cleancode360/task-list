@@ -9,8 +9,6 @@ resource "aws_secretsmanager_secret_version" "backend" {
   secret_id = aws_secretsmanager_secret.backend.id
 
   secret_string = jsonencode({
-    "app.security.user.username" = var.app_username
-    "app.security.user.password" = var.app_password
     "spring.datasource.username" = var.db_username
     "spring.datasource.password" = var.db_password
   })
