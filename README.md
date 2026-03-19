@@ -28,8 +28,6 @@ mvn spring-boot:run
 
 Environment variables (optional):
 - `SPRING_DATASOURCE_URL` (default: `jdbc:postgresql://localhost:5432/todo`)
-- `SPRING_DATASOURCE_USERNAME` (default: `todo`)
-- `SPRING_DATASOURCE_PASSWORD` (default: `todo`)
 - `APP_CORS_ALLOWED_ORIGINS` (default: `http://localhost:5173`)
 
 ### Frontend

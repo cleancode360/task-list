@@ -7,8 +7,8 @@ spring:
     name: ${PROJECT_NAME:todo}-backend
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/todo}
-    username: ${SPRING_DATASOURCE_USERNAME:todo}
-    password: ${SPRING_DATASOURCE_PASSWORD:todo}
+    username: todo
+    password: todo
   jpa:
     hibernate:
       ddl-auto: update
