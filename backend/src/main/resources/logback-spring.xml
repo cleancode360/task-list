@@ -15,7 +15,11 @@
                 <loggerName/>
                 <message/>
                 <arguments/>
-                <stackTrace/>
+                <stackTrace>
+                    <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                        <lineSeparator> | </lineSeparator>
+                    </throwableConverter>
+                </stackTrace>
             </providers>
         </encoder>
     </appender>
