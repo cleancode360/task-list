@@ -1,6 +1,7 @@
 package com.example.todo.tag.infrastructure.gatewayadapter.jpa;
 
 import com.example.todo.auth.domain.entity.User;
+import com.example.todo.shared.infrastructure.gatewayadapter.jpa.JpaQueryLogger;
 import com.example.todo.tag.domain.entity.Tag;
 import com.example.todo.tag.domain.gateway.TagGateway;
 import lombok.RequiredArgsConstructor;
@@ -16,29 +17,33 @@ import java.util.Optional;
 public class JpaTagAdapter implements TagGateway {
 
     private final JpaTagRepository jpaRepository;
+    private final JpaQueryLogger queryLogger;
 
     @Override
     public List<Tag> findAllByUser(User user) {
-        return jpaRepository.findAllByUser(user);
+        return queryLogger.queryAndLog("findAllByUser", () -> jpaRepository.findAllByUser(user));
     }
 
     @Override
     public Optional<Tag> findByIdAndUser(Long id, User user) {
-        return jpaRepository.findByIdAndUser(id, user);
+        return queryLogger.queryAndLog("findByIdAndUser", () -> jpaRepository.findByIdAndUser(id, user));
     }
 
     @Override
     public Optional<Tag> findByNameIgnoreCaseAndUser(String name, User user) {
-        return jpaRepository.findByNameIgnoreCaseAndUser(name, user);
+        return queryLogger.queryAndLog("findByNameIgnoreCaseAndUser", () -> jpaRepository.findByNameIgnoreCaseAndUser(name, user));
     }
 
     @Override
     public Tag save(Tag tag) {
-        return jpaRepository.save(tag);
+        return queryLogger.queryAndLog("save", () -> jpaRepository.save(tag));
     }
 
     @Override
     public void delete(Tag tag) {
-        jpaRepository.delete(tag);
+        queryLogger.queryAndLog("delete", () -> {
+            jpaRepository.delete(tag);
+            return null;
+        });
     }
 }

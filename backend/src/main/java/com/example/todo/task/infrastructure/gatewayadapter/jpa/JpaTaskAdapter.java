@@ -1,6 +1,7 @@
 package com.example.todo.task.infrastructure.gatewayadapter.jpa;
 
 import com.example.todo.auth.domain.entity.User;
+import com.example.todo.shared.infrastructure.gatewayadapter.jpa.JpaQueryLogger;
 import com.example.todo.task.domain.entity.Task;
 import com.example.todo.task.domain.gateway.TaskGateway;
 import lombok.RequiredArgsConstructor;
@@ -16,24 +17,28 @@ import java.util.Optional;
 public class JpaTaskAdapter implements TaskGateway {
 
     private final JpaTaskRepository jpaRepository;
+    private final JpaQueryLogger queryLogger;
 
     @Override
     public List<Task> findAllByUser(User user) {
-        return jpaRepository.findAllByUser(user);
+        return queryLogger.queryAndLog("findAllByUser", () -> jpaRepository.findAllByUser(user));
     }
 
     @Override
     public Optional<Task> findByIdAndUser(Long id, User user) {
-        return jpaRepository.findByIdAndUser(id, user);
+        return queryLogger.queryAndLog("findByIdAndUser", () -> jpaRepository.findByIdAndUser(id, user));
     }
 
     @Override
     public Task save(Task task) {
-        return jpaRepository.save(task);
+        return queryLogger.queryAndLog("save", () -> jpaRepository.save(task));
     }
 
     @Override
     public void delete(Task task) {
-        jpaRepository.delete(task);
+        queryLogger.queryAndLog("delete", () -> {
+            jpaRepository.delete(task);
+            return null;
+        });
     }
 }
