@@ -23,7 +23,8 @@ spring:
       hibernate:
         format_sql: true
   jackson:
-    default-property-inclusion: non_null
+    deserialization:
+      fail-on-unknown-properties: false
 
 app:
   cors:
