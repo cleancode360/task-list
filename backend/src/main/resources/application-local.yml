@@ -1,0 +1,10 @@
+spring:
+  config:
+    import: ""
+  cloud:
+    aws:
+      secretsmanager:
+        enabled: false
+  datasource:
+    username: todo
+    password: todo
