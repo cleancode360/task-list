@@ -10,5 +10,5 @@ public record TaskCreateRequest(
     String title,
     @Size(max = 2000)
     String description,
-    List<Long> tagIds
+    List<String> tagNames
 ) {}

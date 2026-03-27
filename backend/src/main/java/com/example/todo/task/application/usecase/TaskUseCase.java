@@ -6,6 +6,7 @@ import com.example.todo.tag.domain.entity.Tag;
 import com.example.todo.tag.domain.gateway.TagGateway;
 import com.example.todo.task.domain.entity.Task;
 import com.example.todo.task.domain.gateway.TaskGateway;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,20 +31,17 @@ public class TaskUseCase {
             .orElseThrow(() -> new SharedException(404, "Task not found: " + id));
     }
 
-    public Task create(String title, String description, List<Long> tagIds, User user) {
+    public Task create(String title, String description, List<String> tagNames, User user) {
         Task task = new Task(title, description);
         task.setUser(user);
-        if (tagIds != null) {
-            for (Long tagId : tagIds) {
-                Tag tag = tagGateway.findByIdAndUser(tagId, user)
-                    .orElseThrow(() -> new SharedException(404, "Tag not found: " + tagId));
-                task.addTag(tag);
-            }
+        for (Tag tag : resolveTagsByName(tagNames, user)) {
+            task.addTag(tag);
         }
         return taskGateway.save(task);
     }
 
-    public Task update(Long id, String title, String description, Boolean completed, List<Long> tagIds, User user) {
+    public Task update(Long id, String title, String description, Boolean completed,
+                       List<String> tagNames, User user) {
         Task task = getById(id, user);
         if (title != null) {
             task.setTitle(title);
@@ -54,15 +52,29 @@ public class TaskUseCase {
         if (completed != null) {
             task.setCompleted(completed);
         }
-        if (tagIds != null) {
+        if (tagNames != null) {
             task.getTags().clear();
-            for (Long tagId : tagIds) {
-                Tag tag = tagGateway.findByIdAndUser(tagId, user)
-                    .orElseThrow(() -> new SharedException(404, "Tag not found: " + tagId));
+            for (Tag tag : resolveTagsByName(tagNames, user)) {
                 task.addTag(tag);
             }
         }
         return taskGateway.save(task);
+    }
+
+    private List<Tag> resolveTagsByName(List<String> tagNames, User user) {
+        List<Tag> tags = new ArrayList<>();
+        if (tagNames != null) {
+            for (String name : tagNames) {
+                Tag tag = tagGateway.findByNameIgnoreCaseAndUser(name, user)
+                    .orElseGet(() -> {
+                        Tag newTag = new Tag(name);
+                        newTag.setUser(user);
+                        return tagGateway.save(newTag);
+                    });
+                tags.add(tag);
+            }
+        }
+        return tags;
     }
 
     public Task toggle(Long id, User user) {

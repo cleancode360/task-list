@@ -54,7 +54,7 @@ public class RESTTaskController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
         EntityModel<?> model = taskResponseAssembler.toModel(
-            taskService.create(request.title(), request.description(), request.tagIds(), user)
+            taskService.create(request.title(), request.description(), request.tagNames(), user)
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(model);
     }
@@ -64,7 +64,8 @@ public class RESTTaskController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
         return taskResponseAssembler.toModel(
-            taskService.update(id, request.title(), request.description(), request.completed(), request.tagIds(), user)
+            taskService.update(id, request.title(), request.description(), request.completed(),
+                request.tagNames(), user)
         );
     }
 

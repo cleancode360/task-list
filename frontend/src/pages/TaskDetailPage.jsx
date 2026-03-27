@@ -6,7 +6,7 @@ export default function TaskDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [task, setTask] = useState(null);
-  const [form, setForm] = useState({ title: "", description: "", completed: false, tagIds: "" });
+  const [form, setForm] = useState({ title: "", description: "", completed: false, tags: "" });
   const [error, setError] = useState(null);
 
   const loadTask = async () => {
@@ -17,7 +17,7 @@ export default function TaskDetailPage() {
         title: data.title || "",
         description: data.description || "",
         completed: data.completed || false,
-        tagIds: data.tags?.map((tag) => tag.id).join(",") || "",
+        tags: data.tags?.map((tag) => tag.name).join(", ") || "",
       });
     } catch (err) {
       setError(err.message);
@@ -32,8 +32,8 @@ export default function TaskDetailPage() {
     event.preventDefault();
     setError(null);
     try {
-      const tagIds = form.tagIds
-        ? form.tagIds.split(",").map((value) => Number(value.trim())).filter(Boolean)
+      const tagNames = form.tags
+        ? form.tags.split(",").map((s) => s.trim()).filter(Boolean)
         : null;
       await apiFetch(task._links.update.href, {
         method: "PUT",
@@ -41,7 +41,7 @@ export default function TaskDetailPage() {
           title: form.title,
           description: form.description,
           completed: form.completed,
-          tagIds,
+          tagNames,
         }),
       });
       loadTask();
@@ -74,6 +74,17 @@ export default function TaskDetailPage() {
       </div>
 
       {error && <div className="alert alert-danger">{error}</div>}
+
+      {task.tags?.length > 0 && (
+        <div className="mb-4">
+          <strong className="me-2">Tags:</strong>
+          {task.tags.map((tag) => (
+            <span key={tag.id} className="badge bg-secondary me-1">
+              {tag.name}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="card mb-4">
         <div className="card-body">
@@ -109,11 +120,12 @@ export default function TaskDetailPage() {
               </label>
             </div>
             <div className="mb-3">
-              <label className="form-label">Tag IDs (comma separated)</label>
+              <label className="form-label">Tags (comma separated names)</label>
               <input
                 className="form-control"
-                value={form.tagIds}
-                onChange={(event) => setForm({ ...form, tagIds: event.target.value })}
+                value={form.tags}
+                onChange={(event) => setForm({ ...form, tags: event.target.value })}
+                placeholder="e.g. work, urgent"
               />
             </div>
             <button className="btn btn-primary me-2">Save</button>

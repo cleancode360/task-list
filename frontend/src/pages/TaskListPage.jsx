@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { apiFetch } from "../api/client.js";
 import Pagination from "../components/Pagination.jsx";
 
-const emptyForm = { title: "", description: "", tagIds: "" };
+const emptyForm = { title: "", description: "", tags: "" };
 
 export default function TaskListPage() {
   const [tasks, setTasks] = useState([]);
@@ -40,12 +40,12 @@ export default function TaskListPage() {
     event.preventDefault();
     setError(null);
     try {
-      const tagIds = form.tagIds
-        ? form.tagIds.split(",").map((id) => Number(id.trim())).filter(Boolean)
+      const tagNames = form.tags
+        ? form.tags.split(",").map((s) => s.trim()).filter(Boolean)
         : null;
       await apiFetch("/api/tasks", {
         method: "POST",
-        body: JSON.stringify({ title: form.title, description: form.description, tagIds }),
+        body: JSON.stringify({ title: form.title, description: form.description, tagNames }),
       });
       setForm(emptyForm);
       setPage(0);
@@ -89,11 +89,12 @@ export default function TaskListPage() {
               />
             </div>
             <div className="mb-3">
-              <label className="form-label">Tag IDs (comma separated)</label>
+              <label className="form-label">Tags (comma separated names)</label>
               <input
                 className="form-control"
-                value={form.tagIds}
-                onChange={(event) => setForm({ ...form, tagIds: event.target.value })}
+                value={form.tags}
+                onChange={(event) => setForm({ ...form, tags: event.target.value })}
+                placeholder="e.g. work, urgent"
               />
             </div>
             <button className="btn btn-primary">Add task</button>

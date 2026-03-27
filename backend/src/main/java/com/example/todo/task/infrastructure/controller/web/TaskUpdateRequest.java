@@ -9,5 +9,5 @@ public record TaskUpdateRequest(
     @Size(max = 2000)
     String description,
     Boolean completed,
-    List<Long> tagIds
+    List<String> tagNames
 ) {}
