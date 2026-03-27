@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 @Transactional
@@ -22,6 +24,11 @@ public class JpaTaskAdapter implements TaskGateway {
     @Override
     public List<Task> findAllByUser(User user) {
         return queryLogger.queryAndLog("findAllByUser", () -> jpaRepository.findAllByUser(user));
+    }
+
+    @Override
+    public Page<Task> findAllByUser(User user, Pageable pageable) {
+        return queryLogger.queryAndLog("findAllByUser(pageable)", () -> jpaRepository.findAllByUser(user, pageable));
     }
 
     @Override

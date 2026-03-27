@@ -8,6 +8,8 @@ import com.example.todo.task.domain.entity.Task;
 import com.example.todo.task.domain.gateway.TaskGateway;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @RequiredArgsConstructor
 public class TaskUseCase {
@@ -17,6 +19,10 @@ public class TaskUseCase {
 
     public List<Task> getAll(User user) {
         return taskGateway.findAllByUser(user);
+    }
+
+    public Page<Task> getAll(User user, Pageable pageable) {
+        return taskGateway.findAllByUser(user, pageable);
     }
 
     public Task getById(Long id, User user) {

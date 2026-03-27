@@ -3,11 +3,14 @@ package com.example.todo.task.infrastructure.controller.web;
 import com.example.todo.auth.domain.entity.User;
 import com.example.todo.auth.infrastructure.security.CustomUserDetails;
 import com.example.todo.task.application.usecase.TaskUseCase;
+import com.example.todo.task.domain.entity.Task;
 import jakarta.validation.Valid;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import org.springframework.hateoas.CollectionModel;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,12 +31,15 @@ public class RESTTaskController {
     private final TaskUseCase taskService;
     private final TaskSummaryAssembler taskSummaryAssembler;
     private final TaskResponseAssembler taskResponseAssembler;
+    private final PagedResourcesAssembler<Task> pagedResourcesAssembler;
 
     @GetMapping
-    public CollectionModel<EntityModel<TaskSummaryResponse>> listTasks(
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public PagedModel<EntityModel<TaskSummaryResponse>> listTasks(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            Pageable pageable) {
         User user = userDetails.getUser();
-        return taskSummaryAssembler.toCollectionModel(Objects.requireNonNull(taskService.getAll(user)));
+        Page<Task> page = taskService.getAll(user, pageable);
+        return pagedResourcesAssembler.toModel(page, taskSummaryAssembler);
     }
 
     @GetMapping("/{id}")

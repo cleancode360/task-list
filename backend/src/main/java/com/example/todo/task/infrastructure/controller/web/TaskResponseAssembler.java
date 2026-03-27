@@ -33,7 +33,7 @@ public class TaskResponseAssembler implements RepresentationModelAssembler<Task,
             linkTo(methodOn(RESTTaskController.class).updateTask(task.getId(), null, null)).withRel("update"),
             linkTo(methodOn(RESTTaskController.class).deleteTask(task.getId(), null)).withRel("delete"),
             linkTo(methodOn(RESTTaskController.class).toggleTask(task.getId(), null)).withRel("toggle"),
-            linkTo(methodOn(RESTTaskController.class).listTasks(null)).withRel("collection")
+            linkTo(methodOn(RESTTaskController.class).listTasks(null, null)).withRel("collection")
         );
     }
 }

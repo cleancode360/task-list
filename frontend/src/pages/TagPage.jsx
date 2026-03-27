@@ -1,24 +1,27 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../api/client.js";
+import Pagination from "../components/Pagination.jsx";
 
 export default function TagPage() {
   const [tags, setTags] = useState([]);
   const [name, setName] = useState("");
   const [error, setError] = useState(null);
+  const [page, setPage] = useState(0);
+  const [pageInfo, setPageInfo] = useState({ totalPages: 0, totalElements: 0 });
 
-  const loadTags = async () => {
+  const loadTags = async (requestedPage = page) => {
     try {
-      const data = await apiFetch("/api/tags");
-      const items = data?._embedded?.tags || [];
-      setTags(items);
+      const data = await apiFetch(`/api/tags?page=${requestedPage}&size=20`);
+      setTags(data?._embedded?.tags || []);
+      setPageInfo(data?.page || { totalPages: 0, totalElements: 0 });
     } catch (err) {
       setError(err.message);
     }
   };
 
   useEffect(() => {
-    loadTags();
-  }, []);
+    loadTags(page);
+  }, [page]);
 
   const handleCreate = async (event) => {
     event.preventDefault();
@@ -29,7 +32,8 @@ export default function TagPage() {
         body: JSON.stringify({ name }),
       });
       setName("");
-      loadTags();
+      setPage(0);
+      loadTags(0);
     } catch (err) {
       setError(err.message);
     }
@@ -37,7 +41,7 @@ export default function TagPage() {
 
   const handleDelete = async (tag) => {
     await apiFetch(tag._links.delete.href, { method: "DELETE" });
-    loadTags();
+    loadTags(page);
   };
 
   const handleRename = async (tag, newName) => {
@@ -45,7 +49,7 @@ export default function TagPage() {
       method: "PUT",
       body: JSON.stringify({ name: newName }),
     });
-    loadTags();
+    loadTags(page);
   };
 
   return (
@@ -76,6 +80,13 @@ export default function TagPage() {
           <TagRow key={tag.id} tag={tag} onDelete={handleDelete} onRename={handleRename} />
         ))}
       </div>
+
+      {pageInfo.totalElements > 0 && (
+        <div className="text-muted text-center small mt-2">
+          {pageInfo.totalElements} tag{pageInfo.totalElements !== 1 && "s"} total
+        </div>
+      )}
+      <Pagination page={page} totalPages={pageInfo.totalPages} onPageChange={setPage} />
     </div>
   );
 }

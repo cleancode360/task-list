@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../api/client.js";
+import Pagination from "../components/Pagination.jsx";
 
 const emptyForm = { title: "", description: "", tagIds: "" };
 
@@ -8,29 +9,31 @@ export default function TaskListPage() {
   const [tasks, setTasks] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState(null);
+  const [page, setPage] = useState(0);
+  const [pageInfo, setPageInfo] = useState({ totalPages: 0, totalElements: 0 });
 
-  const loadTasks = async () => {
+  const loadTasks = async (requestedPage = page) => {
     try {
-      const data = await apiFetch("/api/tasks");
-      const items = data?._embedded?.tasks || [];
-      setTasks(items);
+      const data = await apiFetch(`/api/tasks?page=${requestedPage}&size=20&sort=createdAt,desc`);
+      setTasks(data?._embedded?.tasks || []);
+      setPageInfo(data?.page || { totalPages: 0, totalElements: 0 });
     } catch (err) {
       setError(err.message);
     }
   };
 
   useEffect(() => {
-    loadTasks();
-  }, []);
+    loadTasks(page);
+  }, [page]);
 
   const handleToggle = async (task) => {
     await apiFetch(task._links.toggle.href, { method: "POST" });
-    loadTasks();
+    loadTasks(page);
   };
 
   const handleDelete = async (task) => {
     await apiFetch(task._links.delete.href, { method: "DELETE" });
-    loadTasks();
+    loadTasks(page);
   };
 
   const handleCreate = async (event) => {
@@ -45,7 +48,8 @@ export default function TaskListPage() {
         body: JSON.stringify({ title: form.title, description: form.description, tagIds }),
       });
       setForm(emptyForm);
-      loadTasks();
+      setPage(0);
+      loadTasks(0);
     } catch (err) {
       setError(err.message);
     }
@@ -127,6 +131,13 @@ export default function TaskListPage() {
           </div>
         ))}
       </div>
+
+      {pageInfo.totalElements > 0 && (
+        <div className="text-muted text-center small mt-2">
+          {pageInfo.totalElements} task{pageInfo.totalElements !== 1 && "s"} total
+        </div>
+      )}
+      <Pagination page={page} totalPages={pageInfo.totalPages} onPageChange={setPage} />
     </div>
   );
 }

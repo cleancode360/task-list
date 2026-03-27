@@ -19,7 +19,7 @@ public class TagResponseAssembler implements RepresentationModelAssembler<Tag, E
             linkTo(methodOn(RESTTagController.class).getTag(tag.getId(), null)).withSelfRel(),
             linkTo(methodOn(RESTTagController.class).updateTag(tag.getId(), null, null)).withRel("update"),
             linkTo(methodOn(RESTTagController.class).deleteTag(tag.getId(), null)).withRel("delete"),
-            linkTo(methodOn(RESTTagController.class).listTags(null)).withRel("collection")
+            linkTo(methodOn(RESTTagController.class).listTags(null, null)).withRel("collection")
         );
     }
 }

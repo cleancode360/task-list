@@ -6,6 +6,8 @@ import com.example.todo.tag.domain.entity.Tag;
 import com.example.todo.tag.domain.gateway.TagGateway;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @RequiredArgsConstructor
 public class TagUseCase {
@@ -14,6 +16,10 @@ public class TagUseCase {
 
     public List<Tag> getAll(User user) {
         return tagGateway.findAllByUser(user);
+    }
+
+    public Page<Tag> getAll(User user, Pageable pageable) {
+        return tagGateway.findAllByUser(user, pageable);
     }
 
     public Tag getById(Long id, User user) {

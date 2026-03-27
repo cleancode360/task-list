@@ -3,10 +3,14 @@ package com.example.todo.tag.infrastructure.controller.web;
 import com.example.todo.auth.domain.entity.User;
 import com.example.todo.auth.infrastructure.security.CustomUserDetails;
 import com.example.todo.tag.application.usecase.TagUseCase;
+import com.example.todo.tag.domain.entity.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.hateoas.CollectionModel;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,12 +30,15 @@ public class RESTTagController {
 
     private final TagUseCase tagService;
     private final TagResponseAssembler tagResponseAssembler;
+    private final PagedResourcesAssembler<Tag> pagedResourcesAssembler;
 
     @GetMapping
-    public CollectionModel<EntityModel<TagResponse>> listTags(
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public PagedModel<EntityModel<TagResponse>> listTags(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            Pageable pageable) {
         User user = userDetails.getUser();
-        return tagResponseAssembler.toCollectionModel(tagService.getAll(user));
+        Page<Tag> page = tagService.getAll(user, pageable);
+        return pagedResourcesAssembler.toModel(page, tagResponseAssembler);
     }
 
     @GetMapping("/{id}")
