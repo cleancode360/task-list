@@ -1,5 +1,7 @@
 import { Platform } from "react-native";
-import { getToken, setToken, deleteToken } from "./tokenStorage";
+import {
+  getToken, setToken, getRefreshToken, setRefreshToken, clearAllTokens,
+} from "./tokenStorage";
 
 function resolveBaseUrl(): string {
   const envUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
@@ -16,6 +18,33 @@ function resolveBaseUrl(): string {
 }
 
 const API_BASE_URL = resolveBaseUrl();
+
+let isRefreshing = false;
+let refreshPromise: Promise<boolean> | null = null;
+
+async function tryRefresh(): Promise<boolean> {
+  const refreshToken = await getRefreshToken();
+  if (!refreshToken) return false;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+    if (!response.ok) {
+      await clearAllTokens();
+      return false;
+    }
+    const data = await response.json();
+    await setToken(data.token);
+    await setRefreshToken(data.refreshToken);
+    return true;
+  } catch {
+    await clearAllTokens();
+    return false;
+  }
+}
 
 export async function apiFetch(path: string, options: RequestInit = {}): Promise<any> {
   const url = path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
@@ -34,7 +63,23 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
   if (response.status === 204) return null;
 
   if (response.status === 401) {
-    await deleteToken();
+    if (!isRefreshing) {
+      isRefreshing = true;
+      refreshPromise = tryRefresh().finally(() => { isRefreshing = false; });
+    }
+    const refreshed = await refreshPromise;
+    if (refreshed) {
+      const newToken = await getToken();
+      headers["Authorization"] = `Bearer ${newToken}`;
+      const retry = await fetch(url, { ...options, headers });
+      if (retry.status === 204) return null;
+      if (!retry.ok) {
+        await clearAllTokens();
+        throw new Error("Unauthorized");
+      }
+      return retry.json();
+    }
+    await clearAllTokens();
     throw new Error("Unauthorized");
   }
 
@@ -54,6 +99,9 @@ export const auth = {
     if (data.token) {
       await setToken(data.token);
     }
+    if (data.refreshToken) {
+      await setRefreshToken(data.refreshToken);
+    }
     return data;
   },
 
@@ -64,12 +112,7 @@ export const auth = {
     }),
 
   logout: async () => {
-    try {
-      await apiFetch("/api/auth/logout", { method: "POST" });
-    } catch {
-      // ignore
-    }
-    await deleteToken();
+    await clearAllTokens();
   },
 
   me: async () => {

@@ -8,6 +8,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 public class TagUseCase {
@@ -47,8 +48,13 @@ public class TagUseCase {
         return tagGateway.save(tag);
     }
 
+    @Transactional
     public void delete(Long id, User user) {
         Tag tag = getById(id, user);
+        for (var task : tag.getTasks()) {
+            task.removeTag(tag);
+        }
+        tag.getTasks().clear();
         tagGateway.delete(tag);
     }
 }

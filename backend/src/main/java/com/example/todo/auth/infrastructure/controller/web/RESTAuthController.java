@@ -2,8 +2,8 @@ package com.example.todo.auth.infrastructure.controller.web;
 
 import com.example.todo.auth.application.usecase.UserUseCase;
 import com.example.todo.auth.infrastructure.security.CustomUserDetails;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import com.example.todo.auth.infrastructure.security.JwtService;
+import com.example.todo.shared.domain.exception.SharedException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -12,8 +12,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,32 +25,41 @@ public class RESTAuthController {
 
     private final AuthenticationManager authenticationManager;
     private final UserUseCase userUseCase;
+    private final JwtService jwtService;
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         userUseCase.register(request.username(), request.password());
-        return ResponseEntity.status(HttpStatus.CREATED).body(new AuthResponse(request.username()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new AuthResponse(request.username(), null, null));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request,
-            HttpServletRequest httpRequest) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(request.username(), request.password())
         );
 
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(authentication);
-        SecurityContextHolder.setContext(context);
+        String username = authentication.getName();
+        String accessToken = jwtService.generateAccessToken(username);
+        String refreshToken = jwtService.generateRefreshToken(username);
+        return ResponseEntity.ok(new AuthResponse(username, accessToken, refreshToken));
+    }
 
-        HttpSession session = httpRequest.getSession(true);
-        session.setAttribute("SPRING_SECURITY_CONTEXT", context);
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@RequestBody RefreshRequest request) {
+        String token = request.refreshToken();
+        if (!jwtService.isValid(token) || !jwtService.isRefreshToken(token)) {
+            throw new SharedException(401, "Invalid refresh token");
+        }
 
-        return ResponseEntity.ok(new AuthResponse(authentication.getName()));
+        String username = jwtService.extractUsername(token);
+        String newAccessToken = jwtService.generateAccessToken(username);
+        String newRefreshToken = jwtService.generateRefreshToken(username);
+        return ResponseEntity.ok(new AuthResponse(username, newAccessToken, newRefreshToken));
     }
 
     @GetMapping("/me")
     public ResponseEntity<AuthResponse> me(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        return ResponseEntity.ok(new AuthResponse(userDetails.getUsername()));
+        return ResponseEntity.ok(new AuthResponse(userDetails.getUsername(), null, null));
     }
 }

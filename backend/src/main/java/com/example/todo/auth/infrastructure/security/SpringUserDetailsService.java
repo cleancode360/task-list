@@ -2,6 +2,7 @@ package com.example.todo.auth.infrastructure.security;
 
 import com.example.todo.auth.domain.gateway.UserGateway;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,6 +15,7 @@ public class SpringUserDetailsService implements UserDetailsService {
     private final UserGateway userGateway;
 
     @Override
+    @Cacheable(value = "userDetails", key = "#username")
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userGateway.findByUsername(username)
             .map(CustomUserDetails::new)
