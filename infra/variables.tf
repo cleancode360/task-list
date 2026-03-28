@@ -31,6 +31,12 @@ variable "db_password" {
   sensitive   = true
 }
 
+variable "jwt_secret" {
+  description = "Secret key used to sign JWTs."
+  type        = string
+  sensitive   = true
+}
+
 variable "frontend_branch" {
   description = "Git branch tracked by Amplify."
   type        = string
