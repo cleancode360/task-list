@@ -39,6 +39,8 @@ This is a project supporting real financial sector features
   * create frontend/package-lock.json before CD pipelines: cd frontend && docker run --rm -v "$PWD:/app" -w /app node:20-alpine npm install
 * backend
   * Use java records where possible
+  * k8s
+    * Ingress with HTTPS and WAF
   * application.yml
     * default values for developing environment
     * production-environment-first: development environment with single env var specifying the local profile, additional application-local.yml
