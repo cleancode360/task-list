@@ -1,0 +1,133 @@
+---
+description: Comprehensive project standards — architecture, naming, patterns, and conventions for the todo monorepo
+alwaysApply: true
+---
+
+# Repo Standards
+
+## Stack
+* Database: PostgreSQL
+* Backend: Spring Boot, Maven, Lombok, Logback SLF4J, Micrometer Tracing Bridge OTel
+* Frontend: React Native
+* Local deployment: Docker compose
+* AWS deployment: GitHub Actions, Terraform, EKS Fargate, Amplify Hosting, RDS PostgreSQL, CloudWatch Logs
+
+## Base project structure: monorepo/
+  * .github/workflows
+    * deploy-backend.yml
+    * deploy-frontend.yml
+    * deploy-infra.yml
+  * backend/
+    * k8s/
+    * src/
+    * .dockerignore
+    * Dockerfile
+    * pom.xml
+  * frontend/
+  * infra/
+  * docker-compose.yml
+  * README.md
+
+  
+## Simulation of real financial sector features
+## Variables: single-source-of-truth variables: no redundant values
+  * GitHub Actions variables and secrets: developer-chosen inputs used by GitHub Workflows
+  * AWS SSM Parameter Store: outputs from Infra GitHub Workflow used by other GitHub Workflows. SSM_PARAM_PREFIX as explicit prefix
+  * default spring boot properties for local deployment
+## frontend
+  * create frontend/package-lock.json before CD pipelines: cd frontend && docker run --rm -v "$PWD:/app" -w /app node:20-alpine npm install
+## backend
+  * Use java records where possible
+  * application.yml
+    * default values for developing environment
+    * production-environment-first: development environment with single env var specifying the local profile, additional application-local.yml
+    * lombok: @Value and @Qualifier as copyable annotations.
+    * jackson.deserialization.fail-on-unknown-properties: false
+  * NFR
+    * Usability: HATEOAS API
+    * Maintainability and testability:
+      * Screaming? Architecture with Clean Architecture
+        ```
+        src/main/
+        |-- java/com/example/myproject/
+        |   |-- Application.java
+        |   |-- businessfeature/
+        |   |   |-- domain/
+        |   |   |   |-- entity/
+        |   |   |   |   |-- Feature.java
+        |   |   |   |-- gateway/
+        |   |   |       |-- FeatureGateway.java
+        |   |   |-- application/
+        |   |   |   |-- usecase/
+        |   |   |       |-- FeatureUsecase.java
+        |   |   |-- infrastructure/
+        |   |       |-- controller/
+        |   |       |   |-- technology/
+        |   |       |       |-- TechnologyFeatureController.java
+        |   |       |-- gatewayadapter/
+        |   |       |   |-- technology/
+        |   |       |       |-- TechnologyFeatureAdapter.java
+        |   |       |-- otherframeworksublayers/
+        |   |-- shared/
+        |       |-- domain/
+        |       |   |-- entity/
+        |       |   |   |-- exception/
+        |       |   |   |   |-- SharedException.java
+        |       |   |   |-- log/
+        |       |   |       |-- LogPayload.java
+        |       |   |-- gateway/
+        |       |       |-- log/
+        |       |           |-- LogGateway.java
+        |       |-- infrastructure/
+        |           |-- gatewayadapter/
+        |           |   |-- slf4j/
+        |           |   |   |-- log/
+        |           |   |       |-- SLF4JLogAdapter.java
+        |           |   |-- rest/
+        |           |       |-- RestClient.java
+        |           |-- config/
+        |           |   |-- SecurityConfig.java
+        |           |   |-- CorsConfig.java
+        |           |-- filter/
+        |           |   |-- RequestLoggingFilter.java
+        |           |-- exception/
+        |               |-- SharedExceptionHandler.java
+        |-- resources/
+            |-- application.yml
+        ``` 
+      * observability
+        * pod CPU/memory metrics
+        * log entry with
+          * timestamp
+          * level
+          * service_name
+          * thread_name
+          * traceId 
+          * logger_name
+          * message
+          * structuredArguments: LogPayload with URL and body, response status and body, duration
+          * stackTrace
+        * logaback with JSON encoder, LogRepository with SLF4J and LogPayload
+        * logging in Controllers, RestControllerAdvice, external services requests
+    * Portability: docker containers
+    * Availability: scalability / resilience / reliability
+      * RestControllerAdvice
+      * custom ApiException with status and a contructor with cause Throwable
+      * ErrorResponse with status, message, errors
+      * fargate multi-az
+      * k8s liveness/readiness probes
+      * Performance
+        * no stack trace in info logs
+        * OncePerRequestFilter with @Order(Ordered.HIGHEST_PRECEDENCE)
+        * close no longer needed Closeable resources
+        * pagination
+    * security
+      * AWS Secrets Manager SDK for reading secrets from the backend
+      * eks-pod-identity for authorization to AWS resources
+      * user credentials on request headers, not on body which is logged
+      * BOLA-proof
+        * UUIDs as db records id
+
+## Production
+* vpc.tf
+  * single_nat_gateway = false and set one_nat_gateway_per_az = true
