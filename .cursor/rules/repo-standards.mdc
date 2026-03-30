@@ -12,7 +12,8 @@ alwaysApply: true
 * Local deployment: Docker compose
 * AWS deployment: GitHub Actions, Terraform, EKS Fargate, Amplify Hosting, RDS PostgreSQL, CloudWatch Logs
 
-## Base project structure: monorepo/
+## Considerations
+* Base project structure: monorepo/
   * .github/workflows
     * deploy-backend.yml
     * deploy-frontend.yml
@@ -27,16 +28,14 @@ alwaysApply: true
   * infra/
   * docker-compose.yml
   * README.md
-
-  
-## Simulation of real financial sector features
-## Variables: single-source-of-truth variables: no redundant values
+* Simulation of real financial sector features
+* Variables: single-source-of-truth variables: no redundant values
   * GitHub Actions variables and secrets: developer-chosen inputs used by GitHub Workflows
   * AWS SSM Parameter Store: outputs from Infra GitHub Workflow used by other GitHub Workflows. SSM_PARAM_PREFIX as explicit prefix
   * default spring boot properties for local deployment
-## frontend
+* frontend
   * create frontend/package-lock.json before CD pipelines: cd frontend && docker run --rm -v "$PWD:/app" -w /app node:20-alpine npm install
-## backend
+* backend
   * Use java records where possible
   * application.yml
     * default values for developing environment
