@@ -47,12 +47,12 @@ This is a project supporting real financial sector features
   * NFR
     * Usability: HATEOAS API
     * Maintainability and testability:
-      * Screaming? Architecture with Clean Architecture
+      * Screaming Architecture and Clean Architecture
         ```
         src/main/
-        |-- java/com/example/myproject/
+        |-- java/com/example/MY_PROJECT/
         |   |-- Application.java
-        |   |-- businessfeature/
+        |   |-- BUSINESS_FEATURE/
         |   |   |-- domain/
         |   |   |   |-- entity/
         |   |   |   |   |-- Feature.java
@@ -63,34 +63,37 @@ This is a project supporting real financial sector features
         |   |   |       |-- FeatureUseCase.java
         |   |   |-- infrastructure/
         |   |       |-- controller/
-        |   |       |   |-- technology/
+        |   |       |   |-- TECHNOLOGY/
         |   |       |       |-- TechnologyFeatureController.java
         |   |       |-- gatewayadapter/
-        |   |       |   |-- technology/
+        |   |       |   |-- TECHNOLOGY/
         |   |       |       |-- TechnologyFeatureAdapter.java
-        |   |       |-- otherframeworksublayers/
+        |   |       |-- config/
+        |   |       |-- interceptor/
+        |   |       |-- filter/
         |   |-- shared/
-        |       |-- log/
-        |       |   |-- domain/
-        |       |   |   |-- entity/LogPayload.java
-        |       |   |   |-- gateway/LogGateway.java
-        |       |   |-- infrastructure/
-        |       |       |-- gatewayadapter/slf4j/SLF4JLogAdapter.java
-        |       |       |-- filter/RequestLoggingFilter.java
-        |       |-- exception/
-        |       |   |-- domain/entity/ServletResponseException.java
-        |       |   |-- infrastructure/interceptor/GlobalExceptionHandler.java
-        |       |-- other/
-        |           |-- infrastructure/
-        |               |-- gatewayadapter/
-        |               |   |-- rest/
-        |               |       |-- RestClient.java
-        |               |-- config/
-        |                   |-- SecurityConfig.java
-        |                   |-- CorsConfig.java
-        |
+        |       |-- CONCERN/
+        |       |   |-- CLEAN_ARCHITECTURE_LAYERS/
+        |       |-- UNBOUNDED_CONCERNS/
         |-- resources/
             |-- application.yml
+        ```
+
+        shared concerns example:
+        ```
+        src/main/
+        |-- java/com/example/MY_PROJECT/
+            |-- shared/
+                |-- log/
+                |   |-- domain/
+                |   |   |-- entity/LogPayload.java
+                |   |   |-- gateway/LogGateway.java
+                |   |-- infrastructure/
+                |       |-- gatewayadapter/slf4j/Slf4jLogAdapter.java
+                |       |-- filter/RequestLoggingFilter.java
+                |-- exception/
+                    |-- domain/entity/ServletResponseException.java
+                    |-- infrastructure/interceptor/GlobalExceptionHandler.java
         ```
       * observability
         * pod CPU/memory metrics
@@ -99,7 +102,7 @@ This is a project supporting real financial sector features
           * level
           * service_name
           * thread_name
-          * traceId 
+          * traceId
           * logger_name
           * message
           * structuredArguments: LogPayload with URL and body, response status and body, duration
