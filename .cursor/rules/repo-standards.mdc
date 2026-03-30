@@ -36,7 +36,7 @@ This is a project supporting real financial sector features
   * AWS SSM Parameter Store: outputs from Infra GitHub Workflow used by other GitHub Workflows. SSM_PARAM_PREFIX as explicit prefix
   * default spring boot properties for local deployment
 * frontend
-  * create frontend/package-lock.json before CD pipelines: cd frontend && docker run --rm -v "$PWD:/app" -w /app node:20-alpine npm install
+  * refresh frontend/package-lock.json after frontend/package.json is changed
 * backend
   * Use java records where possible
   * k8s
@@ -131,6 +131,7 @@ This is a project supporting real financial sector features
       * BOLA-proof
         * UUIDs as db records id
 * infra
+  * refresh infra/.terraform.lock.hcl after provider or module version constraints change
   * vpc.tf:
     * single_nat_gateway = false
     * one_nat_gateway_per_az = true

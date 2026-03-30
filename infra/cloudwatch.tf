@@ -32,7 +32,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_high_cpu" {
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    DBInstanceIdentifier = module.rds.db_instance_id
+    DBInstanceIdentifier = module.rds.db_instance_identifier
   }
 
   alarm_actions = [aws_sns_topic.infra_alerts.arn]
@@ -51,7 +51,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_low_storage" {
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    DBInstanceIdentifier = module.rds.db_instance_id
+    DBInstanceIdentifier = module.rds.db_instance_identifier
   }
 
   alarm_actions = [aws_sns_topic.infra_alerts.arn]
@@ -70,7 +70,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_high_connections" {
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    DBInstanceIdentifier = module.rds.db_instance_id
+    DBInstanceIdentifier = module.rds.db_instance_identifier
   }
 
   alarm_actions = [aws_sns_topic.infra_alerts.arn]

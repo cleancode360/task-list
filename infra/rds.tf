@@ -46,7 +46,7 @@ module "rds" {
   backup_retention_period = 7
   deletion_protection     = var.rds_deletion_protection
   skip_final_snapshot     = var.rds_skip_final_snapshot
-  final_snapshot_identifier = "${local.name_prefix}-postgres-final"
+  final_snapshot_identifier_prefix = "${local.name_prefix}-postgres-final"
 
   tags = local.tags
 }
