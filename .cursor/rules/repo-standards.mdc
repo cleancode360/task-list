@@ -74,7 +74,8 @@ This is a project supporting real financial sector features
         |   |-- shared/
         |       |-- CONCERN/
         |       |   |-- CLEAN_ARCHITECTURE_LAYERS/
-        |       |-- UNBOUNDED_CONCERNS/
+        |       |-- unbounded_concerns/
+        |           |-- CLEAN_ARCHITECTURE_LAYERS/
         |-- resources/
             |-- application.yml
         ```
