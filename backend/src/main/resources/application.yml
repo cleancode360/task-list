@@ -4,7 +4,7 @@ server:
 
 spring:
   application:
-    name: ${PROJECT_NAME:todo}-backend
+    name: todo-backend
   config:
     import: optional:aws-secretsmanager:${AWS_SECRET_NAME}
   cloud:
