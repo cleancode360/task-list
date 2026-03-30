@@ -58,7 +58,7 @@ alwaysApply: true
         |   |   |       |-- FeatureGateway.java
         |   |   |-- application/
         |   |   |   |-- usecase/
-        |   |   |       |-- FeatureUsecase.java
+        |   |   |       |-- FeatureUseCase.java
         |   |   |-- infrastructure/
         |   |       |-- controller/
         |   |       |   |-- technology/
@@ -93,7 +93,7 @@ alwaysApply: true
         |               |-- SharedExceptionHandler.java
         |-- resources/
             |-- application.yml
-        ``` 
+        ```
       * observability
         * pod CPU/memory metrics
         * log entry with
@@ -106,12 +106,12 @@ alwaysApply: true
           * message
           * structuredArguments: LogPayload with URL and body, response status and body, duration
           * stackTrace
-        * logaback with JSON encoder, LogRepository with SLF4J and LogPayload
+        * logback with JSON encoder, LogRepository with SLF4J and LogPayload
         * logging in Controllers, RestControllerAdvice, external services requests
     * Portability: docker containers
     * Availability: scalability / resilience / reliability
       * RestControllerAdvice
-      * custom ApiException with status and a contructor with cause Throwable
+      * custom ApiException with status and a constructor with cause Throwable
       * ErrorResponse with status, message, errors
       * fargate multi-az
       * k8s liveness/readiness probes
