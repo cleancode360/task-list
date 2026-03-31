@@ -1,4 +1,4 @@
-package com.example.todo.shared.unbounded_concerns.infrastructure.gatewayadapter.jpa;
+package com.example.todo.shared.log.infrastructure.gatewayadapter.jpa;
 
 import com.example.todo.shared.log.domain.gateway.LogGateway;
 import com.example.todo.shared.log.domain.entity.LogPayload;

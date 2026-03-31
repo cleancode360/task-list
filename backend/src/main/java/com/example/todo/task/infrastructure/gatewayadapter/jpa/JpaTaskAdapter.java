@@ -1,7 +1,7 @@
 package com.example.todo.task.infrastructure.gatewayadapter.jpa;
 
 import com.example.todo.auth.domain.entity.User;
-import com.example.todo.shared.unbounded_concerns.infrastructure.gatewayadapter.jpa.JpaQueryLogger;
+import com.example.todo.shared.log.infrastructure.gatewayadapter.jpa.JpaQueryLogger;
 import com.example.todo.task.domain.entity.Task;
 import com.example.todo.task.domain.gateway.TaskGateway;
 import lombok.RequiredArgsConstructor;

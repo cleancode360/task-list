@@ -2,7 +2,7 @@ package com.example.todo.auth.infrastructure.gatewayadapter.jpa;
 
 import com.example.todo.auth.domain.entity.User;
 import com.example.todo.auth.domain.gateway.UserGateway;
-import com.example.todo.shared.unbounded_concerns.infrastructure.gatewayadapter.jpa.JpaQueryLogger;
+import com.example.todo.shared.log.infrastructure.gatewayadapter.jpa.JpaQueryLogger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
