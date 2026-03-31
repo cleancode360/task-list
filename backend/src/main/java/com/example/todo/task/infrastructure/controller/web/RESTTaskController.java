@@ -1,7 +1,7 @@
 package com.example.todo.task.infrastructure.controller.web;
 
 import com.example.todo.auth.domain.entity.User;
-import com.example.todo.auth.infrastructure.security.CustomUserDetails;
+import com.example.todo.auth.infrastructure.gatewayadapter.spring.CustomUserDetails;
 import com.example.todo.task.application.usecase.TaskUseCase;
 import com.example.todo.task.domain.entity.Task;
 import jakarta.validation.Valid;

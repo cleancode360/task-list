@@ -1,9 +1,9 @@
 package com.example.todo.auth.infrastructure.controller.web;
 
 import com.example.todo.auth.application.usecase.UserUseCase;
-import com.example.todo.auth.infrastructure.security.CustomUserDetails;
-import com.example.todo.auth.infrastructure.security.JwtService;
-import com.example.todo.shared.domain.exception.SharedException;
+import com.example.todo.auth.infrastructure.gatewayadapter.spring.CustomUserDetails;
+import com.example.todo.auth.infrastructure.gatewayadapter.jwt.JwtService;
+import com.example.todo.shared.exception.domain.entity.SharedException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

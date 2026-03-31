@@ -1,7 +1,7 @@
 package com.example.todo.tag.infrastructure.gatewayadapter.jpa;
 
 import com.example.todo.auth.domain.entity.User;
-import com.example.todo.shared.infrastructure.gatewayadapter.jpa.JpaQueryLogger;
+import com.example.todo.shared.unbounded_concerns.infrastructure.gatewayadapter.jpa.JpaQueryLogger;
 import com.example.todo.tag.domain.entity.Tag;
 import com.example.todo.tag.domain.gateway.TagGateway;
 import lombok.RequiredArgsConstructor;

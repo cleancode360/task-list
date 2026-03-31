@@ -3,7 +3,7 @@ package com.example.todo.auth.application.usecase;
 import com.example.todo.auth.domain.entity.User;
 import com.example.todo.auth.domain.gateway.PasswordHasherGateway;
 import com.example.todo.auth.domain.gateway.UserGateway;
-import com.example.todo.shared.domain.exception.SharedException;
+import com.example.todo.shared.exception.domain.entity.SharedException;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor

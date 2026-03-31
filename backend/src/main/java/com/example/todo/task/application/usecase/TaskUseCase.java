@@ -1,7 +1,7 @@
 package com.example.todo.task.application.usecase;
 
 import com.example.todo.auth.domain.entity.User;
-import com.example.todo.shared.domain.exception.SharedException;
+import com.example.todo.shared.exception.domain.entity.SharedException;
 import com.example.todo.tag.domain.entity.Tag;
 import com.example.todo.tag.domain.gateway.TagGateway;
 import com.example.todo.task.domain.entity.Task;
