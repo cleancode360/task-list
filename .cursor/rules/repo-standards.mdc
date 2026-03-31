@@ -64,13 +64,15 @@ This is a project supporting real financial sector features
         |   |   |   |-- usecase/
         |   |   |       |-- FeatureUseCase.java
         |   |   |-- infrastructure/
-        |   |       |-- controller/
-        |   |       |   |-- TECHNOLOGY/
-        |   |       |       |-- TechnologyFeatureController.java
-        |   |       |-- gatewayadapter/
-        |   |       |   |-- TECHNOLOGY/
-        |   |       |       |-- TechnologyFeatureAdapter.java
+        |   |   |   |-- controller/
+        |   |   |   |   |-- TECHNOLOGY/
+        |   |   |   |       |-- TechnologyFeatureController.java
+        |   |   |   |-- gatewayadapter/
+        |   |   |       |-- TECHNOLOGY/
+        |   |   |           |-- TechnologyFeatureAdapter.java
+        |   |   |-- framework/
         |   |       |-- config/
+        |   |       |-- advice/
         |   |       |-- interceptor/
         |   |       |-- filter/
         |   |-- shared/
@@ -91,12 +93,11 @@ This is a project supporting real financial sector features
                 |   |-- domain/
                 |   |   |-- entity/LogPayload.java
                 |   |   |-- gateway/LogGateway.java
-                |   |-- infrastructure/
-                |       |-- gatewayadapter/slf4j/Slf4jLogAdapter.java
-                |       |-- filter/RequestLoggingFilter.java
+                |   |-- infrastructure/gatewayadapter/slf4j/Slf4jLogAdapter.java
+                |   |-- framework/filter/RequestLoggingFilter.java
                 |-- exception/
                     |-- domain/entity/ServletResponseException.java
-                    |-- infrastructure/interceptor/GlobalExceptionHandler.java
+                    |-- framework/advice/GlobalExceptionHandler.java
         ```
       * observability
         * pod CPU/memory metrics
