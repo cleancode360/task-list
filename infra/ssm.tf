@@ -69,3 +69,11 @@ resource "aws_ssm_parameter" "backend_secrets_key" {
 
   tags = local.tags
 }
+
+resource "aws_ssm_parameter" "github_actions_role_arn" {
+  name  = "/${var.ssm_param_prefix}/github-actions-role-arn"
+  type  = "String"
+  value = aws_iam_role.github_actions.arn
+
+  tags = local.tags
+}

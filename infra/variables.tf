@@ -40,7 +40,7 @@ variable "jwt_secret" {
 variable "frontend_branch" {
   description = "Git branch tracked by Amplify."
   type        = string
-  default     = "master"
+  default     = "main"
 }
 
 variable "rds_multi_az" {
