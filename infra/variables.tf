@@ -79,11 +79,6 @@ variable "alert_email" {
   default     = ""
 }
 
-variable "backend_domain" {
-  description = "Custom domain for the backend ALB (used by ACM certificate)."
-  type        = string
-}
-
 variable "backend_waf_rate_limit" {
   description = "Max requests per 5-minute window per IP before WAF blocks."
   type        = number
