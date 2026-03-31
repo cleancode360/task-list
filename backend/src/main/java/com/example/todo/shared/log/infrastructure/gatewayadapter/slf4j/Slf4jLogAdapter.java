@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @Slf4j
-public class SLF4JLogAdapter implements LogGateway {
+public class Slf4jLogAdapter implements LogGateway {
     private final String payloadKey = "payload";
 
     @Override

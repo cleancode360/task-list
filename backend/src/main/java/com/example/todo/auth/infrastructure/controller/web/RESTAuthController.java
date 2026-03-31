@@ -3,7 +3,7 @@ package com.example.todo.auth.infrastructure.controller.web;
 import com.example.todo.auth.application.usecase.UserUseCase;
 import com.example.todo.auth.infrastructure.gatewayadapter.spring.CustomUserDetails;
 import com.example.todo.auth.infrastructure.gatewayadapter.jwt.JwtService;
-import com.example.todo.shared.exception.domain.entity.SharedException;
+import com.example.todo.shared.exception.domain.entity.ServletResponseException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -49,7 +49,7 @@ public class RESTAuthController {
     public ResponseEntity<AuthResponse> refresh(@RequestBody RefreshRequest request) {
         String token = request.refreshToken();
         if (!jwtService.isValid(token) || !jwtService.isRefreshToken(token)) {
-            throw new SharedException(401, "Invalid refresh token");
+            throw new ServletResponseException(401, "Invalid refresh token");
         }
 
         String username = jwtService.extractUsername(token);

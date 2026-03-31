@@ -2,7 +2,7 @@ package com.example.todo.shared.log.framework.filter;
 
 import com.example.todo.shared.log.domain.entity.LogPayload;
 import com.example.todo.shared.log.domain.gateway.LogGateway;
-import com.example.todo.shared.exception.framework.advice.SharedExceptionHandler;
+import com.example.todo.shared.exception.framework.advice.GlobalExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -71,7 +71,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
                 label.append("?").append(queryString);
             }
 
-            Exception ex = (Exception) wrappedRequest.getAttribute(SharedExceptionHandler.EXCEPTION_ATTRIBUTE);
+            Exception ex = (Exception) wrappedRequest.getAttribute(GlobalExceptionHandler.EXCEPTION_ATTRIBUTE);
             if (status >= 400 || ex != null) {
                 logRepository.error(label.toString(), payload, ex);
             } else {

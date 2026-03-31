@@ -1,7 +1,7 @@
 package com.example.todo.task.application.usecase;
 
 import com.example.todo.auth.domain.entity.User;
-import com.example.todo.shared.exception.domain.entity.SharedException;
+import com.example.todo.shared.exception.domain.entity.ServletResponseException;
 import com.example.todo.tag.domain.entity.Tag;
 import com.example.todo.tag.domain.gateway.TagGateway;
 import com.example.todo.task.domain.entity.Task;
@@ -28,7 +28,7 @@ public class TaskUseCase {
 
     public Task getById(Long id, User user) {
         return taskGateway.findByIdAndUser(id, user)
-            .orElseThrow(() -> new SharedException(404, "Task not found: " + id));
+            .orElseThrow(() -> new ServletResponseException(404, "Task not found: " + id));
     }
 
     public Task create(String title, String description, List<String> tagNames, User user) {
@@ -91,7 +91,7 @@ public class TaskUseCase {
     public Task addTag(Long taskId, Long tagId, User user) {
         Task task = getById(taskId, user);
         Tag tag = tagGateway.findByIdAndUser(tagId, user)
-            .orElseThrow(() -> new SharedException(404, "Tag not found: " + tagId));
+            .orElseThrow(() -> new ServletResponseException(404, "Tag not found: " + tagId));
         task.addTag(tag);
         return taskGateway.save(task);
     }
@@ -99,7 +99,7 @@ public class TaskUseCase {
     public Task removeTag(Long taskId, Long tagId, User user) {
         Task task = getById(taskId, user);
         Tag tag = tagGateway.findByIdAndUser(tagId, user)
-            .orElseThrow(() -> new SharedException(404, "Tag not found: " + tagId));
+            .orElseThrow(() -> new ServletResponseException(404, "Tag not found: " + tagId));
         task.removeTag(tag);
         return taskGateway.save(task);
     }

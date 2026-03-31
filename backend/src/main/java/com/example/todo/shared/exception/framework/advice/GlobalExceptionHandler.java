@@ -1,7 +1,7 @@
 package com.example.todo.shared.exception.framework.advice;
 
 import com.example.todo.shared.exception.domain.entity.ApiErrorResponse;
-import com.example.todo.shared.exception.domain.entity.SharedException;
+import com.example.todo.shared.exception.domain.entity.ServletResponseException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,12 +15,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
-public class SharedExceptionHandler {
+public class GlobalExceptionHandler {
 
     public static final String EXCEPTION_ATTRIBUTE = "requestException";
 
-    @ExceptionHandler(SharedException.class)
-    public ResponseEntity<ApiErrorResponse> handleSharedException(SharedException ex, HttpServletRequest request) {
+    @ExceptionHandler(ServletResponseException.class)
+    public ResponseEntity<ApiErrorResponse> handleServletResponseException(ServletResponseException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.valueOf(ex.getStatus()), ex.getMessage(), ex, request);
     }
 

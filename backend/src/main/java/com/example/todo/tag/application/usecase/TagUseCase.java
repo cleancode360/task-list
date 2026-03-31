@@ -1,7 +1,7 @@
 package com.example.todo.tag.application.usecase;
 
 import com.example.todo.auth.domain.entity.User;
-import com.example.todo.shared.exception.domain.entity.SharedException;
+import com.example.todo.shared.exception.domain.entity.ServletResponseException;
 import com.example.todo.tag.domain.entity.Tag;
 import com.example.todo.tag.domain.gateway.TagGateway;
 import java.util.List;
@@ -25,12 +25,12 @@ public class TagUseCase {
 
     public Tag getById(Long id, User user) {
         return tagGateway.findByIdAndUser(id, user)
-            .orElseThrow(() -> new SharedException(404, "Tag not found: " + id));
+            .orElseThrow(() -> new ServletResponseException(404, "Tag not found: " + id));
     }
 
     public Tag create(String name, User user) {
         tagGateway.findByNameIgnoreCaseAndUser(name, user).ifPresent(existing -> {
-            throw new SharedException(409, "Tag already exists: " + name);
+            throw new ServletResponseException(409, "Tag already exists: " + name);
         });
         Tag tag = new Tag(name);
         tag.setUser(user);
@@ -42,7 +42,7 @@ public class TagUseCase {
         tagGateway.findByNameIgnoreCaseAndUser(name, user)
             .filter(existing -> !existing.getId().equals(id))
             .ifPresent(existing -> {
-                throw new SharedException(409, "Tag already exists: " + name);
+                throw new ServletResponseException(409, "Tag already exists: " + name);
             });
         tag.setName(name);
         return tagGateway.save(tag);
