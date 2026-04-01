@@ -50,50 +50,6 @@ resource "aws_wafv2_web_acl" "backend" {
     }
   }
 
-  rule {
-    name     = "aws-sqli-rules"
-    priority = 3
-
-    override_action {
-      none {}
-    }
-
-    statement {
-      managed_rule_group_statement {
-        vendor_name = "AWS"
-        name        = "AWSManagedRulesSQLiRuleSet"
-      }
-    }
-
-    visibility_config {
-      sampled_requests_enabled   = true
-      cloudwatch_metrics_enabled = true
-      metric_name                = "${local.name_prefix}-sqli-rules"
-    }
-  }
-
-  rule {
-    name     = "aws-known-bad-inputs"
-    priority = 4
-
-    override_action {
-      none {}
-    }
-
-    statement {
-      managed_rule_group_statement {
-        vendor_name = "AWS"
-        name        = "AWSManagedRulesKnownBadInputsRuleSet"
-      }
-    }
-
-    visibility_config {
-      sampled_requests_enabled   = true
-      cloudwatch_metrics_enabled = true
-      metric_name                = "${local.name_prefix}-known-bad-inputs"
-    }
-  }
-
   visibility_config {
     sampled_requests_enabled   = true
     cloudwatch_metrics_enabled = true

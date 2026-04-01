@@ -46,7 +46,7 @@ variable "frontend_branch" {
 variable "rds_multi_az" {
   description = "Enable Multi-AZ deployment for RDS."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "rds_deletion_protection" {
@@ -67,10 +67,16 @@ variable "eks_public_endpoint" {
   default     = true
 }
 
+variable "eks_log_types" {
+  description = "EKS control plane log types forwarded to CloudWatch."
+  type        = list(string)
+  default     = ["api", "authenticator"]
+}
+
 variable "cloudwatch_retention_days" {
   description = "CloudWatch Logs retention in days."
   type        = number
-  default     = 365
+  default     = 30
 }
 
 variable "alert_email" {

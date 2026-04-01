@@ -133,6 +133,4 @@ This is a project supporting real financial sector features
         * UUIDs as db records id
 * infra
   * refresh infra/.terraform.lock.hcl after provider or module version constraints change
-  * vpc.tf:
-    * single_nat_gateway = false
-    * one_nat_gateway_per_az = true
+
