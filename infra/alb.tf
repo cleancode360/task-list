@@ -42,7 +42,18 @@ resource "helm_release" "aws_load_balancer_controller" {
     value = module.alb_controller_irsa.iam_role_arn
   }
 
-  timeout    = 600
+  # Required when controller runs on Fargate (no IMDS access).
+  set {
+    name  = "region"
+    value = var.aws_region
+  }
+
+  set {
+    name  = "vpcId"
+    value = module.vpc.vpc_id
+  }
+
+  timeout    = 1200
 
   depends_on = [module.eks]
 }
