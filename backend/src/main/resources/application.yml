@@ -4,11 +4,17 @@ server:
 
 spring:
   application:
-    name: ${PROJECT_NAME:todo}-backend
+    name: todo-backend
+  config:
+    import: optional:aws-secretsmanager:${AWS_SECRET_NAME}
+  cloud:
+    aws:
+      region:
+        static: ${AWS_REGION:us-east-1}
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/todo}
-    username: ${SPRING_DATASOURCE_USERNAME:todo}
-    password: ${SPRING_DATASOURCE_PASSWORD:todo}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://db:5432/todo}
+    username:
+    password:
   jpa:
     hibernate:
       ddl-auto: update
@@ -16,12 +22,25 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+    web:
+      pageable:
+        default-page-size: 20
+        max-page-size: 100
   jackson:
-    default-property-inclusion: non_null
+    deserialization:
+      fail-on-unknown-properties: false
 
 app:
   cors:
-    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173}
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}
+  jwt:
+    secret: ${JWT_SECRET:a-default-dev-secret-that-is-at-least-32-characters-long}
+    access-expiration-ms: 900000
+    refresh-expiration-ms: 2592000000
 
 management:
   tracing:

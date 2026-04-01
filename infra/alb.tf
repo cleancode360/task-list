@@ -42,5 +42,7 @@ resource "helm_release" "aws_load_balancer_controller" {
     value = module.alb_controller_irsa.iam_role_arn
   }
 
+  timeout    = 600
+
   depends_on = [module.eks]
 }

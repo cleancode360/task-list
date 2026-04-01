@@ -31,14 +31,8 @@ variable "db_password" {
   sensitive   = true
 }
 
-variable "app_username" {
-  description = "Application basic auth username."
-  type        = string
-  default     = "admin"
-}
-
-variable "app_password" {
-  description = "Application basic auth password."
+variable "jwt_secret" {
+  description = "Secret key used to sign JWTs."
   type        = string
   sensitive   = true
 }
@@ -46,13 +40,13 @@ variable "app_password" {
 variable "frontend_branch" {
   description = "Git branch tracked by Amplify."
   type        = string
-  default     = "master"
+  default     = "main"
 }
 
 variable "rds_multi_az" {
   description = "Enable Multi-AZ deployment for RDS."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "rds_deletion_protection" {
@@ -73,16 +67,28 @@ variable "eks_public_endpoint" {
   default     = true
 }
 
+variable "eks_log_types" {
+  description = "EKS control plane log types forwarded to CloudWatch."
+  type        = list(string)
+  default     = ["api", "authenticator"]
+}
+
 variable "cloudwatch_retention_days" {
   description = "CloudWatch Logs retention in days."
   type        = number
-  default     = 365
+  default     = 30
 }
 
 variable "alert_email" {
   description = "Optional email address subscribed to infrastructure alarms."
   type        = string
   default     = ""
+}
+
+variable "backend_waf_rate_limit" {
+  description = "Max requests per 5-minute window per IP before WAF blocks."
+  type        = number
+  default     = 1000
 }
 
 variable "k8s_namespace" {

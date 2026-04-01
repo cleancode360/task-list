@@ -46,10 +46,26 @@ resource "aws_ssm_parameter" "amplify_default_domain" {
   tags = local.tags
 }
 
+resource "aws_ssm_parameter" "waf_acl_arn" {
+  name  = "/${var.ssm_param_prefix}/waf-acl-arn"
+  type  = "String"
+  value = aws_wafv2_web_acl.backend.arn
+
+  tags = local.tags
+}
+
 resource "aws_ssm_parameter" "backend_secrets_key" {
   name  = "/${var.ssm_param_prefix}/backend-secrets-key"
   type  = "String"
   value = aws_secretsmanager_secret.backend.name
+
+  tags = local.tags
+}
+
+resource "aws_ssm_parameter" "github_actions_role_arn" {
+  name  = "/${var.ssm_param_prefix}/github-actions-role-arn"
+  type  = "String"
+  value = aws_iam_role.github_actions.arn
 
   tags = local.tags
 }

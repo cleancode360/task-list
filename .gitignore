@@ -27,3 +27,7 @@ Thumbs.db
 infra/.terraform/
 infra/*.tfstate
 infra/*.tfstate.*
+infra/*.tfvars
+
+# Infra bootstrap
+infra-bootstrap/.env

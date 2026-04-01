@@ -3,7 +3,7 @@ name: Deploy Frontend to Amplify
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - "frontend/**"
       - ".github/workflows/deploy-frontend.yml"

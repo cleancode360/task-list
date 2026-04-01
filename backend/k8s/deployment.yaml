@@ -1,12 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: #{PROJECT_NAME}#-backend
+  name: #{PROJECT_NAME}#-deployment
   namespace: #{K8S_NAMESPACE}#
   labels:
-    app: #{PROJECT_NAME}#-backend
+    app: #{PROJECT_NAME}#-deployment
 spec:
-  replicas: 2
   selector:
     matchLabels:
       app: #{PROJECT_NAME}#-backend
@@ -22,9 +21,6 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
-          env:
-            - name: SPRING_PROFILES_ACTIVE
-              value: cloud
           envFrom:
             - configMapRef:
                 name: backend-config
