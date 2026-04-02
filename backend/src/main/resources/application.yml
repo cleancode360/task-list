@@ -6,7 +6,7 @@ spring:
   application:
     name: todo-backend
   config:
-    import: aws-secretsmanager:${AWS_SECRET_NAME:todo-dev/backend-secrets}
+    import: optional:aws-secretsmanager:${AWS_SECRET_NAME:todo-dev/backend-secrets}
   cloud:
     aws:
       region:
