@@ -35,8 +35,10 @@ module "rds" {
 
   db_name  = replace("${local.name_prefix}_db", "-", "_")
   username = var.db_username
-  password = var.db_password
   port     = 5432
+
+  manage_master_user_password = false
+  password                    = var.db_password
 
   multi_az               = var.rds_multi_az
   create_db_subnet_group = true
