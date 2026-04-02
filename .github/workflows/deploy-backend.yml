@@ -84,7 +84,15 @@ jobs:
           kubectl apply -f backend/k8s/redis-service.yaml -n "$K8S_NAMESPACE"
           kubectl apply -f backend/k8s/hpa.yaml -n "$K8S_NAMESPACE"
           kubectl apply -f backend/k8s/ingress.yaml -n "$K8S_NAMESPACE"
-          kubectl rollout status deployment/"$DEPLOYMENT_NAME" -n "$K8S_NAMESPACE" --timeout=180s
+          kubectl rollout status deployment/"$DEPLOYMENT_NAME" -n "$K8S_NAMESPACE" --timeout=600s
+
+      - name: Dump rollout diagnostics on failure
+        if: failure()
+        run: |
+          kubectl get pods -n "$K8S_NAMESPACE" -o wide
+          kubectl describe deployment "$DEPLOYMENT_NAME" -n "$K8S_NAMESPACE"
+          kubectl describe pods -n "$K8S_NAMESPACE"
+          kubectl logs deployment/"$DEPLOYMENT_NAME" -n "$K8S_NAMESPACE" --tail=200 || true
 
       - name: Publish backend URL to SSM
         run: |
