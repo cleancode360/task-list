@@ -33,6 +33,7 @@ jobs:
       TF_VAR_frontend_branch: ${{ vars.AMPLIFY_BRANCH_NAME }}
       TF_VAR_aws_region: ${{ vars.AWS_REGION }}
       TF_VAR_k8s_namespace: ${{ vars.K8S_NAMESPACE }}
+      TF_VAR_eks_enable_cluster_creator_admin_permissions: false
 
     steps:
       - name: Checkout
