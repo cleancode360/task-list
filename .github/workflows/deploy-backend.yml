@@ -17,7 +17,7 @@ env:
   SSM_PARAM_PREFIX: ${{ vars.SSM_PARAM_PREFIX }}
   PROJECT_NAME: ${{ vars.PROJECT_NAME }}
   K8S_NAMESPACE: ${{ vars.K8S_NAMESPACE }}
-  DEPLOYMENT_NAME: ${{ env.PROJECT_NAME }}-backend
+  DEPLOYMENT_NAME: ${{ vars.PROJECT_NAME }}-backend
 
 jobs:
   deploy:
@@ -30,7 +30,7 @@ jobs:
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+          role-to-assume: ${{ vars.AWS_GITHUB_ACTIONS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
