@@ -68,6 +68,7 @@ jobs:
             --query 'Role.Arn' \
             --output text)
           echo "EKS_CLUSTER_NAME=$EKS_CLUSTER_NAME" >> "$GITHUB_ENV"
+          echo "AMPLIFY_APP_ID=$AMPLIFY_APP_ID" >> "$GITHUB_ENV"
 
           sed -i "s|#{IMAGE_URI}#|$IMAGE_URI|g" backend/k8s/deployment.yaml
           sed -i "s|#{RDS_ENDPOINT}#|$RDS_ENDPOINT|g" backend/k8s/configmap.yaml
