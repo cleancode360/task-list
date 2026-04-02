@@ -13,6 +13,7 @@ Full-stack to-do list app with a Spring Boot HATEOAS API, React + Bootstrap UI, 
 - `backend/`: Spring Boot API
 - `frontend/`: React application
 - `infra/`: Terraform infrastructure for AWS
+- `infra-backend/`: One-time Terraform bootstrap for shared remote state
 - `backend/k8s/`: Kubernetes manifests for backend workload
 - `.github/workflows/deploy-backend.yml`: CI/CD for backend image rollout to EKS
 - `.github/workflows/deploy-frontend.yml`: CI/CD for frontend build + deploy to Amplify
@@ -90,7 +91,18 @@ Install and configure:
 cd infra
 ```
 
-2. For local runs, provide non-sensitive values via environment variables:
+2. Create the shared Terraform backend once:
+
+```bash
+cd ../infra-backend
+export TF_VAR_project_name="todo"
+export TF_VAR_aws_region="us-east-1"
+terraform init
+terraform apply -auto-approve
+cd ../infra
+```
+
+3. For local runs, provide non-sensitive values via environment variables:
 ```bash
 export TF_VAR_project_name="todo"
 export TF_VAR_k8s_namespace="todo-app"
@@ -108,14 +120,19 @@ export TF_VAR_cloudwatch_retention_days="14"
 export TF_VAR_alert_email=""
 ```
 
-3. Provide sensitive values via environment variables:
+4. Provide sensitive values via environment variables:
 ```bash
 export TF_VAR_db_password="change-me"
 ```
 
-4. Apply infrastructure:
+5. Migrate any existing local state into the shared backend:
 ```bash
-terraform init
+MIGRATE_STATE=true sh scripts/init-backend.sh
+```
+
+6. Apply infrastructure:
+```bash
+sh scripts/init-backend.sh
 terraform plan
 terraform apply
 ```
@@ -189,6 +206,8 @@ If Metrics Server is not installed, install it first:
 ```bash
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 ```
+
+Terraform state is stored remotely in S3 and locked via DynamoDB so local runs and GitHub Actions share the same infrastructure state.
 
 ## GitHub Actions CI/CD
 

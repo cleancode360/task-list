@@ -49,7 +49,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        run: terraform init
+        run: sh scripts/init-backend.sh
 
       - name: Terraform Validate
         run: terraform validate

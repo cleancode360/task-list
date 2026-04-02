@@ -28,6 +28,10 @@ infra/.terraform/
 infra/*.tfstate
 infra/*.tfstate.*
 infra/*.tfvars
+infra-backend/.terraform/
+infra-backend/*.tfstate
+infra-backend/*.tfstate.*
+infra-backend/*.tfvars
 
 # Infra bootstrap
 infra-bootstrap/.env

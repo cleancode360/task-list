@@ -2,10 +2,13 @@
 
 One-time local provisioning of AWS infrastructure via Docker. This is required before the GitHub Actions workflows can run, because they authenticate using an IAM role that Terraform itself creates.
 
+This bootstrap expects the shared Terraform backend to exist already. Create it once via `../infra-backend`, then migrate any existing local `infra/terraform.tfstate` into that backend.
+
 ## Prerequisites
 
 - Docker
 - AWS account with admin-level credentials (see below)
+- Terraform `>= 1.6` for the one-time backend bootstrap and state migration
 - A populated `infra/terraform.tfvars` file (see below)
 
 ## AWS Account Setup
@@ -31,6 +34,42 @@ ssm_param_prefix  = "todo-dev"
 
 This file is gitignored because it contains sensitive values.
 
+## Create Shared Terraform Backend
+
+Create the remote state bucket and lock table once:
+
+```bash
+cd ../infra-backend
+
+export TF_VAR_project_name="todo"
+export TF_VAR_aws_region="us-east-1"
+
+terraform init
+terraform apply -auto-approve
+```
+
+This creates:
+
+- S3 bucket: `<project>-terraform-state-<account-id>-<region>`
+- DynamoDB table: `<project>-terraform-locks`
+
+## Migrate Existing Local State
+
+If `infra/terraform.tfstate` already exists locally, migrate it into the remote backend before using GitHub Actions:
+
+```bash
+cd ../infra
+
+export TF_VAR_project_name="todo"
+export TF_VAR_environment="dev"
+export TF_VAR_aws_region="us-east-1"
+export AWS_DEFAULT_REGION="us-east-1"
+
+MIGRATE_STATE=true sh scripts/init-backend.sh
+```
+
+After migration, `terraform plan` in `infra/` and GitHub Actions will both use the same shared state.
+
 ## Usage
 
 ```bash
@@ -43,7 +82,7 @@ export AWS_DEFAULT_REGION=us-east-1
 docker compose up --build
 ```
 
-The container bind-mounts `../infra`, runs `terraform init`, `plan`, and `apply -auto-approve`, then exits.
+The container bind-mounts `../infra`, configures the shared backend, and runs `terraform apply -auto-approve`, then exits.
 
 ## After Bootstrap
 
@@ -69,6 +108,12 @@ export AWS_SECRET_ACCESS_KEY=...
 export AWS_DEFAULT_REGION=us-east-1
 
 docker compose run --rm bootstrap sh -c "terraform init && terraform destroy -auto-approve"
+```
+
+If the backend has already been created, use:
+
+```bash
+docker compose run --rm bootstrap sh -c "sh scripts/init-backend.sh && terraform destroy -auto-approve"
 ```
 
 ### Recreate

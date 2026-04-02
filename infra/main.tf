@@ -16,14 +16,8 @@ terraform {
     }
   }
 
-  # Uncomment after creating remote state resources.
-  # backend "s3" {
-  #   bucket         = "#{PROJECT_NAME}#-terraform-state"
-  #   key            = "aws/eks-fargate/terraform.tfstate"
-  #   region         = "us-east-1"
-  #   dynamodb_table = "#{PROJECT_NAME}#-terraform-locks"
-  #   encrypt        = true
-  # }
+  # Backend config is supplied by `scripts/init-backend.sh`.
+  backend "s3" {}
 }
 
 provider "aws" {
