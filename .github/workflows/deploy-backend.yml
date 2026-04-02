@@ -17,7 +17,7 @@ env:
   SSM_PARAM_PREFIX: ${{ vars.SSM_PARAM_PREFIX }}
   PROJECT_NAME: ${{ vars.PROJECT_NAME }}
   K8S_NAMESPACE: ${{ vars.K8S_NAMESPACE }}
-  DEPLOYMENT_NAME: ${{ env.PROJECT_NAME }}-backend
+  DEPLOYMENT_NAME: ${{ vars.PROJECT_NAME }}-backend
 
 jobs:
   deploy:
