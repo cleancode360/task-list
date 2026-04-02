@@ -54,6 +54,7 @@ jobs:
           ECR_REPOSITORY=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/ecr-repository-name")) | .Value')
           RDS_ENDPOINT=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/rds-endpoint")) | .Value')
           DB_NAME=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/rds-db-name")) | .Value')
+          AMPLIFY_APP_ID=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/amplify-app-id")) | .Value')
           AMPLIFY_DOMAIN=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/amplify-default-domain")) | .Value')
           BACKEND_SECRETS_KEY=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/backend-secrets-key")) | .Value')
           WAF_ACL_ARN=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/waf-acl-arn")) | .Value')
@@ -122,7 +123,19 @@ jobs:
             echo "Timed out waiting for ingress hostname on $INGRESS_NAME" >&2
             exit 1
           fi
+          cat > custom-rules.json <<EOF
+          [
+            {
+              "source": "/api/<*>",
+              "target": "http://$ALB_HOSTNAME/api/<*>",
+              "status": "200"
+            }
+          ]
+          EOF
+          aws amplify update-app \
+            --app-id "$AMPLIFY_APP_ID" \
+            --custom-rules file://custom-rules.json
           aws ssm put-parameter \
             --name "/$SSM_PARAM_PREFIX/backend-public-url" \
-            --value "http://$ALB_HOSTNAME" \
+            --value "/api" \
             --type String --overwrite
