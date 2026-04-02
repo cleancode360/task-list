@@ -5,7 +5,7 @@ RUN apk add --no-cache aws-cli
 WORKDIR /infra
 
 ENTRYPOINT ["sh", "-c", "\
-  terraform init \
+  sh scripts/init-backend.sh \
   && terraform apply -auto-approve -target=module.vpc -target=module.eks \
   && terraform apply -auto-approve \
   && echo '\nGitHub Actions Role ARN:' \

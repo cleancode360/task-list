@@ -65,6 +65,12 @@ resource "aws_iam_role_policy_attachment" "github_actions_ecr" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
 }
 
+resource "aws_iam_role_policy_attachment" "github_actions_admin" {
+  # deploy-infra.yml performs full Terraform apply for this stack.
+  role       = aws_iam_role.github_actions.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
 resource "aws_iam_policy" "github_actions_amplify_deploy" {
   name        = "${local.name_prefix}-github-actions-amplify-deploy"
   description = "Allow GitHub Actions to deploy frontend artifacts to Amplify"
