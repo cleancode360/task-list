@@ -10,7 +10,7 @@ This is a project supporting real financial sector features
 
 ## Stack
 * Database: PostgreSQL
-* Backend: Spring Boot, Maven, Lombok, Logback SLF4J, Micrometer Tracing Bridge OTel
+* Backend: Spring Boot, Maven, Lombok, Logback SLF4J, Micrometer Tracing Bridge OTel, Redis
 * Frontend: React Native
 * Local deployment: Docker compose
 * AWS deployment: GitHub Actions, Terraform, EKS Fargate, Amplify Hosting, RDS PostgreSQL, CloudWatch Logs
@@ -132,7 +132,6 @@ This is a project supporting real financial sector features
         * pagination
     * security
       * AWS Secrets Manager SDK for reading secrets from the backend
-      * eks-pod-identity for authorization to AWS resources
       * user credentials on request headers, not on body which is logged
       * BOLA-proof
         * UUIDs as db records id
