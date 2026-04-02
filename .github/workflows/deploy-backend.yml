@@ -66,6 +66,7 @@ jobs:
             --query 'Role.Arn' \
             --output text)
           echo "EKS_CLUSTER_NAME=$EKS_CLUSTER_NAME" >> "$GITHUB_ENV"
+          echo "BACKEND_SECRETS_KEY=$BACKEND_SECRETS_KEY" >> "$GITHUB_ENV"
 
           sed -i "s|#{IMAGE_URI}#|$IMAGE_URI|g" backend/k8s/deployment.yaml
           sed -i "s|#{RDS_ENDPOINT}#|$RDS_ENDPOINT|g" backend/k8s/configmap.yaml
@@ -99,8 +100,17 @@ jobs:
           kubectl get pods -n "$K8S_NAMESPACE" -o wide
           kubectl describe deployment "$DEPLOYMENT_NAME" -n "$K8S_NAMESPACE"
           kubectl describe pods -n "$K8S_NAMESPACE"
-          kubectl get pod -n "$K8S_NAMESPACE" -l app="$DEPLOYMENT_NAME" -o yaml | rg "serviceAccountName|AWS_ROLE_ARN|AWS_WEB_IDENTITY_TOKEN_FILE|AWS_CONTAINER_CREDENTIALS_FULL_URI|eks.amazonaws.com/role-arn" || true
+          kubectl get pod -n "$K8S_NAMESPACE" -l app="$DEPLOYMENT_NAME" -o yaml | grep -E "serviceAccountName|AWS_ROLE_ARN|AWS_WEB_IDENTITY_TOKEN_FILE|AWS_CONTAINER_CREDENTIALS_FULL_URI|eks.amazonaws.com/role-arn" || true
           kubectl logs deployment/"$DEPLOYMENT_NAME" -n "$K8S_NAMESPACE" --tail=200 || true
+          kubectl delete pod irsa-debug -n "$K8S_NAMESPACE" --ignore-not-found=true
+          kubectl run irsa-debug \
+            -n "$K8S_NAMESPACE" \
+            --image=amazon/aws-cli:2.17.42 \
+            --restart=Never \
+            --serviceaccount=backend-secrets-sa \
+            --command -- sh -c "aws sts get-caller-identity && aws secretsmanager describe-secret --secret-id \"$BACKEND_SECRETS_KEY\"" || true
+          kubectl logs irsa-debug -n "$K8S_NAMESPACE" || true
+          kubectl delete pod irsa-debug -n "$K8S_NAMESPACE" --ignore-not-found=true || true
 
       - name: Publish backend URL to SSM
         run: |
