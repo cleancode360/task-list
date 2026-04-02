@@ -55,10 +55,10 @@ jobs:
         working-directory: frontend
 
       - name: Build
-        run: npm run build
+        run: npx expo export --platform web
         working-directory: frontend
         env:
-          VITE_API_BASE_URL: ${{ env.BACKEND_PUBLIC_URL }}
+          EXPO_PUBLIC_API_BASE_URL: ${{ env.BACKEND_PUBLIC_URL }}
 
       - name: Deploy to Amplify
         run: |

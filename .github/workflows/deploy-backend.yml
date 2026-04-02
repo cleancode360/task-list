@@ -20,6 +20,7 @@ env:
   ENVIRONMENT: ${{ vars.ENVIRONMENT }}
   K8S_NAMESPACE: ${{ vars.K8S_NAMESPACE }}
   DEPLOYMENT_NAME: ${{ vars.PROJECT_NAME }}-backend
+  INGRESS_NAME: ${{ vars.PROJECT_NAME }}-ingress
 
 jobs:
   deploy:
@@ -108,8 +109,19 @@ jobs:
 
       - name: Publish backend URL to SSM
         run: |
-          ALB_HOSTNAME=$(kubectl get ingress "$DEPLOYMENT_NAME" -n "$K8S_NAMESPACE" \
-            -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          ALB_HOSTNAME=""
+          for attempt in $(seq 1 60); do
+            ALB_HOSTNAME=$(kubectl get ingress "$INGRESS_NAME" -n "$K8S_NAMESPACE" \
+              -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            if [ -n "$ALB_HOSTNAME" ]; then
+              break
+            fi
+            sleep 10
+          done
+          if [ -z "$ALB_HOSTNAME" ]; then
+            echo "Timed out waiting for ingress hostname on $INGRESS_NAME" >&2
+            exit 1
+          fi
           aws ssm put-parameter \
             --name "/$SSM_PARAM_PREFIX/backend-public-url" \
             --value "http://$ALB_HOSTNAME" \
