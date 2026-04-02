@@ -163,15 +163,9 @@ resource "aws_iam_role" "backend_secrets" {
       {
         Effect = "Allow"
         Principal = {
-          Federated = module.eks.oidc_provider_arn
+          Service = "pods.eks.amazonaws.com"
         }
-        Action = "sts:AssumeRoleWithWebIdentity"
-        Condition = {
-          StringEquals = {
-            "${replace(module.eks.cluster_oidc_issuer_url, "https://", "")}:aud" = "sts.amazonaws.com"
-            "${replace(module.eks.cluster_oidc_issuer_url, "https://", "")}:sub" = "system:serviceaccount:${local.k8s_namespace}:backend-secrets-sa"
-          }
-        }
+        Action = ["sts:AssumeRole", "sts:TagSession"]
       }
     ]
   })
@@ -182,5 +176,12 @@ resource "aws_iam_role" "backend_secrets" {
 resource "aws_iam_role_policy_attachment" "backend_secrets_access" {
   role       = aws_iam_role.backend_secrets.name
   policy_arn = aws_iam_policy.fargate_secrets_access.arn
+}
+
+resource "aws_eks_pod_identity_association" "backend_secrets" {
+  cluster_name    = module.eks.cluster_name
+  namespace       = local.k8s_namespace
+  service_account = "backend-secrets-sa"
+  role_arn        = aws_iam_role.backend_secrets.arn
 }
 
