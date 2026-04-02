@@ -14,6 +14,7 @@ Full-stack to-do list app with a Spring Boot HATEOAS API, React + Bootstrap UI, 
 - `frontend/`: React application
 - `infra/`: Terraform infrastructure for AWS
 - `infra-backend/`: One-time Terraform bootstrap for shared remote state
+- `utility-containers/`: Dockerized AWS and Kubernetes CLI tools
 - `backend/k8s/`: Kubernetes manifests for backend workload
 - `.github/workflows/deploy-backend.yml`: CI/CD for backend image rollout to EKS
 - `.github/workflows/deploy-frontend.yml`: CI/CD for frontend build + deploy to Amplify
@@ -79,10 +80,22 @@ SELECT * FROM task_tags;      -- list task-tag associations
 
 Install and configure:
 - Terraform `>= 1.6`
-- AWS CLI v2 (`aws configure`)
-- `kubectl`
 - Docker
 - Access to a GitHub repository connected to this project
+
+Optional: instead of installing AWS CLI and `kubectl` locally, use `utility-containers/`:
+
+```bash
+cd utility-containers
+
+export AWS_ACCESS_KEY_ID="..."
+export AWS_SECRET_ACCESS_KEY="..."
+export AWS_DEFAULT_REGION="us-east-1"
+
+docker compose run --rm cli -c "aws sts get-caller-identity"
+docker compose run --rm cli -c "aws eks update-kubeconfig --name todo-dev-eks --region us-east-1"
+docker compose run --rm cli -c "kubectl get pods -n todo-namespace"
+```
 
 ## Terraform workflow (AWS infrastructure)
 
@@ -153,7 +166,7 @@ Terraform provisions:
 
 1. Placeholder resolution:
 - `backend/k8s/configmap.yaml` uses `#{RDS_ENDPOINT}#`, `#{DB_NAME}#`, `#{AMPLIFY_DOMAIN}#`, `#{SECRETS_MANAGER_KEY}#`, and `#{AWS_REGION}#`
-- `backend/k8s/aws-logging.yaml` uses `#{AWS_REGION}#`
+- `backend/k8s/aws-logging.yaml` uses `#{AWS_REGION}#` and `#{PROJECT_NAME}#`
 - `backend/k8s/deployment.yaml` uses `#{IMAGE_URI}#`
 - In CI/CD, `deploy-backend.yml` resolves these values automatically (infra values from SSM, image URI from build step)
 

@@ -1,5 +1,5 @@
 services:
-  aws:
+  cli:
     build:
       context: .
       dockerfile: Dockerfile.aws-kubectl
@@ -8,17 +8,7 @@ services:
       - AWS_SECRET_ACCESS_KEY
       - AWS_DEFAULT_REGION
     volumes:
-      - kube-config:/root/.kube
-
-  kubectl:
-    build:
-      context: .
-      dockerfile: Dockerfile.aws-kubectl
-    environment:
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
-      - AWS_DEFAULT_REGION
-    volumes:
+      - ..:/workspace
       - kube-config:/root/.kube
 
 volumes:
