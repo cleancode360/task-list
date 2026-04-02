@@ -67,6 +67,12 @@ variable "eks_public_endpoint" {
   default     = true
 }
 
+variable "eks_enable_cluster_creator_admin_permissions" {
+  description = "Grant cluster-admin access to the identity running Terraform."
+  type        = bool
+  default     = true
+}
+
 variable "eks_log_types" {
   description = "EKS control plane log types forwarded to CloudWatch."
   type        = list(string)

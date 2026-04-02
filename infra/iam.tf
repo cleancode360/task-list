@@ -111,9 +111,24 @@ resource "aws_iam_role_policy_attachment" "github_actions_infra_read" {
   policy_arn = aws_iam_policy.github_actions_infra_read.arn
 }
 
+resource "aws_eks_access_entry" "github_actions" {
+  cluster_name  = module.eks.cluster_name
+  principal_arn = aws_iam_role.github_actions.arn
+}
+
+resource "aws_eks_access_policy_association" "github_actions_cluster_admin" {
+  cluster_name  = module.eks.cluster_name
+  principal_arn = aws_iam_role.github_actions.arn
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+  access_scope {
+    type = "cluster"
+  }
+}
+
 resource "aws_iam_policy" "github_actions_eks_describe" {
   name        = "${local.name_prefix}-github-actions-eks-describe"
-  description = "Allow GitHub Actions to resolve EKS cluster connection details"
+  description = "Allow GitHub Actions to resolve EKS cluster and caller role details"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -122,6 +137,11 @@ resource "aws_iam_policy" "github_actions_eks_describe" {
         Effect   = "Allow"
         Action   = ["eks:DescribeCluster"]
         Resource = module.eks.cluster_arn
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["iam:GetRole"]
+        Resource = aws_iam_role.github_actions.arn
       }
     ]
   })
