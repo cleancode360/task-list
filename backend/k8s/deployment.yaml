@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: #{PROJECT_NAME}#-deployment
+  name: #{PROJECT_NAME}#-backend
   namespace: #{K8S_NAMESPACE}#
   labels:
-    app: #{PROJECT_NAME}#-deployment
+    app: #{PROJECT_NAME}#-backend
 spec:
   selector:
     matchLabels:
