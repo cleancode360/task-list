@@ -1,0 +1,11 @@
+FROM amazon/aws-cli:latest
+
+ARG KUBECTL_VERSION=1.30.0
+
+RUN yum install -y jq tar gzip \
+    && curl -LO "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
+    && chmod +x kubectl \
+    && mv kubectl /usr/local/bin/ \
+    && yum clean all
+
+ENTRYPOINT ["/bin/bash"]

@@ -15,6 +15,11 @@ This is a project supporting real financial sector features
 * Local deployment: Docker compose
 * AWS deployment: GitHub Actions, Terraform, EKS Fargate, Amplify Hosting, RDS PostgreSQL, CloudWatch Logs
 
+## Local Tooling Policy
+* Always use the `utility-containers` folder to run command-line tools such as `aws`, `kubectl`, `python`, and similar utilities
+* Never install new software on the host machine for this repository; use or add containerized tooling instead
+* When a required CLI tool is missing, extend `utility-containers` rather than relying on a machine-level installation
+
 ## Coding Standards
 * Base monorepo structure: monorepo/
   * .github/workflows
