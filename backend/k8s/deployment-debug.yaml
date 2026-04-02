@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: #{PROJECT_NAME}#-backend-debug
+  namespace: #{K8S_NAMESPACE}#
+  labels:
+    app: #{PROJECT_NAME}#-backend-debug
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: #{PROJECT_NAME}#-backend-debug
+  template:
+    metadata:
+      labels:
+        app: #{PROJECT_NAME}#-backend-debug
+    spec:
+      enableServiceLinks: false
+      serviceAccountName: backend-secrets-sa
+      containers:
+        - name: backend
+          image: #{IMAGE_URI}#
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+            - containerPort: 5005
+              name: jdwp
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "512m"
+              memory: "1Gi"
+          startupProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 45
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3

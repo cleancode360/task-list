@@ -168,6 +168,7 @@ Terraform provisions:
 - `backend/k8s/configmap.yaml` uses `#{RDS_ENDPOINT}#`, `#{DB_NAME}#`, `#{AMPLIFY_DOMAIN}#`, `#{SECRETS_MANAGER_KEY}#`, and `#{AWS_REGION}#`
 - `backend/k8s/aws-logging.yaml` uses `#{AWS_REGION}#` and `#{PROJECT_NAME}#`
 - `backend/k8s/deployment.yaml` uses `#{IMAGE_URI}#`
+- `backend/k8s/deployment-debug.yaml` uses `#{IMAGE_URI}#`, `#{K8S_NAMESPACE}#`, and `#{PROJECT_NAME}#`
 - In CI/CD, `deploy-backend.yml` resolves these values automatically (infra values from SSM, image URI from build step)
 
 2. Apply manifests:
@@ -186,6 +187,58 @@ kubectl apply -f backend/k8s/ingress.yaml
 kubectl get pods -n todo-app
 kubectl rollout status deployment/todo-backend -n todo-app
 ```
+
+### Temporary remote debug session
+
+Use `backend/k8s/deployment-debug.yaml` to start a short-lived debug pod that reuses the normal backend `ConfigMap` and `ServiceAccount` but stays out of the main `Service` selector.
+
+Important:
+- Keep this deployment temporary and remove it when you finish debugging.
+- Do not expose port `5005` through an Ingress or public `Service`.
+- The debug pod talks to the same AWS Secrets Manager entry, RDS instance, and Redis service as the normal backend deployment.
+
+1. Connect `kubectl` to the cluster and resolve the current backend image:
+```bash
+export AWS_REGION="us-east-1"
+export EKS_CLUSTER_NAME="todo-dev-eks"
+export K8S_NAMESPACE="todo-app"
+export PROJECT_NAME="todo"
+
+aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME" --region "$AWS_REGION"
+IMAGE_URI=$(kubectl get deployment "$PROJECT_NAME-backend" -n "$K8S_NAMESPACE" \
+  -o jsonpath='{.spec.template.spec.containers[0].image}')
+```
+
+2. Resolve the debug manifest placeholders into a temporary file and apply it:
+```bash
+DEBUG_MANIFEST="$(mktemp)"
+cp backend/k8s/deployment-debug.yaml "$DEBUG_MANIFEST"
+
+sed -i.bak "s|#{IMAGE_URI}#|$IMAGE_URI|g" "$DEBUG_MANIFEST"
+sed -i.bak "s|#{K8S_NAMESPACE}#|$K8S_NAMESPACE|g" "$DEBUG_MANIFEST"
+sed -i.bak "s|#{PROJECT_NAME}#|$PROJECT_NAME|g" "$DEBUG_MANIFEST"
+rm "$DEBUG_MANIFEST.bak"
+
+kubectl apply -f "$DEBUG_MANIFEST"
+kubectl rollout status deployment/"$PROJECT_NAME-backend-debug" -n "$K8S_NAMESPACE"
+```
+
+3. Forward the JDWP port to your machine:
+```bash
+kubectl port-forward deployment/"$PROJECT_NAME-backend-debug" 5005:5005 -n "$K8S_NAMESPACE"
+```
+
+4. In IntelliJ IDEA, create a `Remote JVM Debug` configuration:
+- Host: `localhost`
+- Port: `5005`
+
+5. When you are done, remove the temporary deployment:
+```bash
+kubectl delete deployment "$PROJECT_NAME-backend-debug" -n "$K8S_NAMESPACE"
+rm -f "$DEBUG_MANIFEST"
+```
+
+The debug deployment starts the JVM with `suspend=n`. If you need to stop on startup, change `JAVA_TOOL_OPTIONS` in `backend/k8s/deployment-debug.yaml` to use `suspend=y` before applying it.
 
 ## Backend monitoring and health
 

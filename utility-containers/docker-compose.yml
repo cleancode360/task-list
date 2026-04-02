@@ -7,6 +7,8 @@ services:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
       - AWS_DEFAULT_REGION
+    ports:
+      - "5005:5005"
     volumes:
       - ..:/workspace
       - kube-config:/root/.kube
