@@ -11,6 +11,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 public class TaskUseCase {
@@ -31,6 +32,7 @@ public class TaskUseCase {
             .orElseThrow(() -> new ServletResponseException(404, "Task not found: " + id));
     }
 
+    @Transactional
     public Task create(String title, String description, List<String> tagNames, User user) {
         Task task = new Task(title, description);
         task.setUser(user);
@@ -40,6 +42,7 @@ public class TaskUseCase {
         return taskGateway.save(task);
     }
 
+    @Transactional
     public Task update(Long id, String title, String description, Boolean completed,
                        List<String> tagNames, User user) {
         Task task = getById(id, user);
@@ -77,17 +80,20 @@ public class TaskUseCase {
         return tags;
     }
 
+    @Transactional
     public Task toggle(Long id, User user) {
         Task task = getById(id, user);
         task.setCompleted(!task.isCompleted());
         return taskGateway.save(task);
     }
 
+    @Transactional
     public void delete(Long id, User user) {
         Task task = getById(id, user);
         taskGateway.delete(task);
     }
 
+    @Transactional
     public Task addTag(Long taskId, Long tagId, User user) {
         Task task = getById(taskId, user);
         Tag tag = tagGateway.findByIdAndUser(tagId, user)
@@ -96,6 +102,7 @@ public class TaskUseCase {
         return taskGateway.save(task);
     }
 
+    @Transactional
     public Task removeTag(Long taskId, Long tagId, User user) {
         Task task = getById(taskId, user);
         Tag tag = tagGateway.findByIdAndUser(tagId, user)
