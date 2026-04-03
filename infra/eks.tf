@@ -1,3 +1,26 @@
+resource "aws_iam_policy" "fargate_logging" {
+  name        = "${local.name_prefix}-fargate-logging"
+  description = "Allow Fargate Fluent Bit sidecar to ship logs to CloudWatch"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogStream",
+          "logs:CreateLogGroup",
+          "logs:DescribeLogStreams",
+          "logs:PutLogEvents"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+
+  tags = local.tags
+}
+
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.24"
@@ -26,6 +49,12 @@ module "eks" {
     }
     eks-pod-identity-agent = {
       most_recent = true
+    }
+  }
+
+  fargate_profile_defaults = {
+    iam_role_additional_policies = {
+      cloudwatch_logging = aws_iam_policy.fargate_logging.arn
     }
   }
 
