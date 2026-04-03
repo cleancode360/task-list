@@ -1,7 +1,6 @@
 package click.cleancode360.todo.auth.infrastructure.gatewayadapter.spring;
 
 import click.cleancode360.todo.auth.domain.entity.User;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Collection;
 import java.util.List;
 import lombok.Getter;
@@ -21,19 +20,16 @@ public class CustomUserDetails implements UserDetails {
     }
 
     @Override
-    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override
-    @JsonIgnore
     public String getPassword() {
         return user.getPassword();
     }
 
     @Override
-    @JsonIgnore
     public String getUsername() {
         return user.getUsername();
     }
