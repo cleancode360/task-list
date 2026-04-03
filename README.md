@@ -123,8 +123,6 @@ export TF_VAR_github_repository="your-org/your-repo"
 export TF_VAR_environment="dev"
 export TF_VAR_aws_region="us-east-1"
 export TF_VAR_ssm_param_prefix="todo-dev"
-export TF_VAR_root_domain="example.com"
-export TF_VAR_backend_api_subdomain="api"
 export TF_VAR_db_username="todo"
 export TF_VAR_frontend_branch="main"
 export TF_VAR_rds_multi_az="false"
@@ -161,6 +159,8 @@ Terraform provisions:
 - IAM roles/policies (including GitHub Actions role)
 - Amplify app and production branch
 - AWS Load Balancer Controller (via Helm)
+- CloudFront distribution in front of the ALB (HTTPS termination + WAF)
+- WAF web ACL attached to the CloudFront distribution
 - CloudWatch log groups with configurable retention
 - CloudWatch alarms for RDS with SNS notifications
 
@@ -298,8 +298,6 @@ Set these repository variables/secrets:
   - `K8S_NAMESPACE` (used by Terraform and backend deploy workflow as the Kubernetes namespace)
   - `ENVIRONMENT`
   - `SSM_PARAM_PREFIX`
-  - `ROOT_DOMAIN`
-  - `BACKEND_API_SUBDOMAIN`
 - Secrets:
   - `DB_USERNAME`
   - `DB_PASSWORD`
@@ -312,8 +310,24 @@ SSM parameter path prefix is controlled by `SSM_PARAM_PREFIX` (without leading s
 - Amplify app is provisioned via Terraform (`infra/amplify.tf`) as a hosting-only service
 - Frontend is built by GitHub Actions (`deploy-frontend.yml`) and deployed to Amplify via the AWS CLI
 - `EXPO_PUBLIC_API_BASE_URL` is set at build time to the HTTPS backend base URL from SSM (`backend-public-url`)
-- In production the frontend calls the backend directly at `https://api.<root-domain>` (cross-origin); the backend's CORS configuration allows the Amplify origin
+- In production the frontend calls the backend via CloudFront at `https://<id>.cloudfront.net` (cross-origin); the backend's CORS configuration allows the Amplify origin
 - The Amplify app ID is written by Terraform to SSM and resolved by workflows at deploy time
+
+## CloudFront HTTPS backend
+
+CloudFront sits in front of the ALB and provides:
+- Free HTTPS via the `*.cloudfront.net` domain (no custom domain or ACM certificate needed)
+- WAF web ACL attached at the CloudFront layer
+
+CloudFront is created conditionally: on the very first deploy the ALB does not yet exist, so CloudFront is skipped. The first-time deploy order is:
+
+1. `deploy-infra` (creates all AWS resources except CloudFront)
+2. `deploy-backend` (creates the ALB via the K8s ingress controller, writes the ALB hostname to SSM)
+3. `deploy-infra` again (reads ALB hostname from SSM, creates CloudFront)
+4. `deploy-backend` again (reads the CloudFront domain from SSM, publishes it as `backend-public-url`)
+5. `deploy-frontend` (reads `backend-public-url` from SSM)
+
+After the initial bootstrap, all three workflows are independent and the ALB hostname is stable.
 
 ## Auth
 The app supports multiple users with session-based authentication. Users register via the UI or `POST /api/auth/register`, then log in to receive a `JSESSIONID` session cookie. Each user's tasks and tags are fully isolated.

@@ -1,6 +1,6 @@
 resource "aws_wafv2_web_acl" "backend" {
   name  = "${local.name_prefix}-backend-waf"
-  scope = "REGIONAL"
+  scope = "CLOUDFRONT"
 
   default_action {
     allow {}

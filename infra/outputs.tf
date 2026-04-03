@@ -33,24 +33,9 @@ output "amplify_default_domain" {
   value       = aws_amplify_app.frontend.default_domain
 }
 
-output "backend_api_domain" {
-  description = "Custom backend API domain."
-  value       = local.backend_api_domain
-}
-
-output "backend_https_base_url" {
-  description = "HTTPS base URL for backend API requests."
-  value       = local.backend_https_base_url
-}
-
-output "backend_tls_certificate_arn" {
-  description = "ACM certificate ARN used by the backend ingress."
-  value       = aws_acm_certificate_validation.backend_api.certificate_arn
-}
-
-output "route53_name_servers" {
-  description = "Route53 name servers for delegating the hosted zone."
-  value       = aws_route53_zone.public.name_servers
+output "backend_cloudfront_domain" {
+  description = "CloudFront domain for backend API requests (empty until ALB hostname is available)."
+  value       = var.alb_hostname != "" ? aws_cloudfront_distribution.backend_api[0].domain_name : ""
 }
 
 output "github_actions_role_arn" {

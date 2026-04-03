@@ -54,11 +54,8 @@ jobs:
           RDS_ENDPOINT=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/rds-endpoint")) | .Value')
           DB_NAME=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/rds-db-name")) | .Value')
           AMPLIFY_DOMAIN=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/amplify-default-domain")) | .Value')
-          BACKEND_API_DOMAIN=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/backend-api-domain")) | .Value')
-          BACKEND_HTTPS_BASE_URL=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/backend-https-base-url")) | .Value')
-          BACKEND_TLS_CERTIFICATE_ARN=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/backend-tls-certificate-arn")) | .Value')
           BACKEND_SECRETS_KEY=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/backend-secrets-key")) | .Value')
-          WAF_ACL_ARN=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/waf-acl-arn")) | .Value')
+          CF_DOMAIN=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/backend-cloudfront-domain")) | .Value // empty')
 
           docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" backend
           docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
@@ -69,17 +66,14 @@ jobs:
             --query 'Role.Arn' \
             --output text)
           echo "EKS_CLUSTER_NAME=$EKS_CLUSTER_NAME" >> "$GITHUB_ENV"
-          echo "BACKEND_HTTPS_BASE_URL=$BACKEND_HTTPS_BASE_URL" >> "$GITHUB_ENV"
+          echo "CF_DOMAIN=$CF_DOMAIN" >> "$GITHUB_ENV"
 
           sed -i "s|#{IMAGE_URI}#|$IMAGE_URI|g" backend/k8s/deployment.yaml
           sed -i "s|#{RDS_ENDPOINT}#|$RDS_ENDPOINT|g" backend/k8s/configmap.yaml
           sed -i "s|#{DB_NAME}#|$DB_NAME|g" backend/k8s/configmap.yaml
           sed -i "s|#{AMPLIFY_DOMAIN}#|$AMPLIFY_DOMAIN|g" backend/k8s/configmap.yaml
-          sed -i "s|#{BACKEND_API_DOMAIN}#|$BACKEND_API_DOMAIN|g" backend/k8s/ingress.yaml
-          sed -i "s|#{BACKEND_TLS_CERTIFICATE_ARN}#|$BACKEND_TLS_CERTIFICATE_ARN|g" backend/k8s/ingress.yaml
           sed -i "s|#{SECRETS_MANAGER_KEY}#|$BACKEND_SECRETS_KEY|g" backend/k8s/configmap.yaml
           sed -i "s|#{BACKEND_SECRETS_ROLE_ARN}#|$BACKEND_SECRETS_ROLE_ARN|g" backend/k8s/service-account.yaml
-          sed -i "s|#{WAF_ACL_ARN}#|$WAF_ACL_ARN|g" backend/k8s/ingress.yaml
           sed -i "s|#{AWS_REGION}#|$AWS_REGION|g" backend/k8s/*.yaml
           sed -i "s|#{K8S_NAMESPACE}#|$K8S_NAMESPACE|g" backend/k8s/*.yaml
           sed -i "s|#{PROJECT_NAME}#|$PROJECT_NAME|g" backend/k8s/*.yaml
@@ -112,9 +106,40 @@ jobs:
             kubectl logs "$pod" -n "$K8S_NAMESPACE" --tail=200 || true
           done
 
+      - name: Publish ALB hostname to SSM
+        run: |
+          INGRESS_NAME="${PROJECT_NAME}-ingress"
+          echo "Waiting for ALB hostname on ingress/$INGRESS_NAME ..."
+          for i in $(seq 1 30); do
+            ALB_HOSTNAME=$(kubectl get ingress "$INGRESS_NAME" -n "$K8S_NAMESPACE" \
+              -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || true)
+            if [ -n "$ALB_HOSTNAME" ]; then break; fi
+            echo "  attempt $i — not ready yet"
+            sleep 10
+          done
+          if [ -z "$ALB_HOSTNAME" ]; then
+            echo "::error::ALB hostname not available after 5 minutes"
+            exit 1
+          fi
+          echo "ALB hostname: $ALB_HOSTNAME"
+          aws ssm put-parameter \
+            --name "/$SSM_PARAM_PREFIX/alb-hostname" \
+            --value "$ALB_HOSTNAME" \
+            --type String --overwrite
+
       - name: Publish backend URL to SSM
         run: |
+          if [ -n "$CF_DOMAIN" ]; then
+            BACKEND_PUBLIC_URL="https://$CF_DOMAIN"
+          else
+            echo "::warning::CloudFront domain not yet available — run deploy-infra then re-run this workflow"
+            INGRESS_NAME="${PROJECT_NAME}-ingress"
+            ALB_HOSTNAME=$(kubectl get ingress "$INGRESS_NAME" -n "$K8S_NAMESPACE" \
+              -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            BACKEND_PUBLIC_URL="http://$ALB_HOSTNAME"
+          fi
+          echo "Publishing backend-public-url: $BACKEND_PUBLIC_URL"
           aws ssm put-parameter \
             --name "/$SSM_PARAM_PREFIX/backend-public-url" \
-            --value "$BACKEND_HTTPS_BASE_URL" \
+            --value "$BACKEND_PUBLIC_URL" \
             --type String --overwrite

@@ -43,25 +43,10 @@ variable "frontend_branch" {
   default     = "main"
 }
 
-variable "root_domain" {
-  description = "Root DNS domain hosted in Route53 for public app endpoints."
+variable "alb_hostname" {
+  description = "ALB hostname written by the backend deploy workflow. Empty on first run (CloudFront is skipped)."
   type        = string
-
-  validation {
-    condition     = trimspace(var.root_domain) != ""
-    error_message = "root_domain must be a non-empty domain name."
-  }
-}
-
-variable "backend_api_subdomain" {
-  description = "Subdomain used for the backend API hostname."
-  type        = string
-  default     = "api"
-
-  validation {
-    condition     = trimspace(var.backend_api_subdomain) != "" && !startswith(var.backend_api_subdomain, ".") && !endswith(var.backend_api_subdomain, ".")
-    error_message = "backend_api_subdomain must be a non-empty subdomain label without leading or trailing dots."
-  }
+  default     = ""
 }
 
 variable "rds_multi_az" {
