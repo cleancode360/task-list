@@ -19,3 +19,4 @@ data:
         log_group_name /eks/#{PROJECT_NAME}#-app
         log_stream_prefix backend-
         auto_create_group true
+        log_key log
