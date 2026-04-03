@@ -41,7 +41,7 @@ resource "aws_ssm_parameter" "amplify_app_id" {
 resource "aws_ssm_parameter" "amplify_default_domain" {
   name  = "/${var.ssm_param_prefix}/amplify-default-domain"
   type  = "String"
-  value = aws_amplify_app.frontend.default_domain
+  value = "${var.frontend_branch}.${aws_amplify_app.frontend.default_domain}"
 
   tags = local.tags
 }
@@ -51,6 +51,14 @@ resource "aws_ssm_parameter" "backend_cloudfront_domain" {
   name  = "/${var.ssm_param_prefix}/backend-cloudfront-domain"
   type  = "String"
   value = aws_cloudfront_distribution.backend_api[0].domain_name
+
+  tags = local.tags
+}
+
+resource "aws_ssm_parameter" "alb_security_group_id" {
+  name  = "/${var.ssm_param_prefix}/alb-security-group-id"
+  type  = "String"
+  value = aws_security_group.alb_cloudfront_only.id
 
   tags = local.tags
 }

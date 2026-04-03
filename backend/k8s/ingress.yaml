@@ -8,6 +8,7 @@ metadata:
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/healthcheck-path: /actuator/health/readiness
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    alb.ingress.kubernetes.io/security-groups: #{ALB_SECURITY_GROUP_ID}#
 spec:
   ingressClassName: alb
   rules:
