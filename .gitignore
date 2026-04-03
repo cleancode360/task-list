@@ -33,8 +33,5 @@ infra-backend/*.tfstate
 infra-backend/*.tfstate.*
 infra-backend/*.tfvars
 
-# Infra bootstrap
-infra-bootstrap/.env
-
 # Utility containers
 utility-containers/.env

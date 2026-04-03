@@ -1,5 +1,5 @@
 services:
-  cli:
+  aws-kubectl:
     build:
       context: .
       dockerfile: Dockerfile.aws-kubectl
@@ -12,6 +12,17 @@ services:
     volumes:
       - ..:/workspace
       - kube-config:/root/.kube
+
+  terraform:
+    build:
+      context: .
+      dockerfile: Dockerfile.terraform
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_DEFAULT_REGION
+    volumes:
+      - ../infra:/infra
 
 volumes:
   kube-config:

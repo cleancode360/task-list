@@ -14,7 +14,7 @@ Full-stack to-do list app with a Spring Boot HATEOAS API, an Expo-based frontend
 - `frontend/`: Expo application
 - `infra/`: Terraform infrastructure for AWS
 - `infra-backend/`: One-time Terraform bootstrap for shared remote state
-- `utility-containers/`: Dockerized AWS and Kubernetes CLI tools
+- `utility-containers/`: Dockerized CLI tools (AWS, kubectl, infra bootstrap)
 - `backend/k8s/`: Kubernetes manifests for backend workload
 - `.github/workflows/deploy-backend.yml`: CI/CD for backend image rollout to EKS
 - `.github/workflows/deploy-frontend.yml`: CI/CD for frontend build + deploy to Amplify
@@ -92,9 +92,9 @@ export AWS_ACCESS_KEY_ID="..."
 export AWS_SECRET_ACCESS_KEY="..."
 export AWS_DEFAULT_REGION="us-east-1"
 
-docker compose run --rm cli -c "aws sts get-caller-identity"
-docker compose run --rm cli -c "aws eks update-kubeconfig --name todo-dev-eks --region us-east-1"
-docker compose run --rm cli -c "kubectl get pods -n todo-namespace"
+docker compose run --rm aws-kubectl -c "aws sts get-caller-identity"
+docker compose run --rm aws-kubectl -c "aws eks update-kubeconfig --name todo-dev-eks --region us-east-1"
+docker compose run --rm aws-kubectl -c "kubectl get pods -n todo-namespace"
 ```
 
 ## Terraform workflow (AWS infrastructure)
