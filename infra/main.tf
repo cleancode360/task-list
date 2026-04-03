@@ -27,9 +27,11 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 
 locals {
-  name_prefix = "${var.project_name}-${var.environment}"
-  k8s_namespace = var.k8s_namespace
-  k8s_log_group = "/eks/${var.project_name}-app"
+  name_prefix            = "${var.project_name}-${var.environment}"
+  k8s_namespace          = var.k8s_namespace
+  k8s_log_group          = "/eks/${var.project_name}-app"
+  backend_api_domain     = "${var.backend_api_subdomain}.${var.root_domain}"
+  backend_https_base_url = "https://${local.backend_api_domain}"
   tags = {
     Project     = var.project_name
     Environment = var.environment

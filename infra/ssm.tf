@@ -46,6 +46,30 @@ resource "aws_ssm_parameter" "amplify_default_domain" {
   tags = local.tags
 }
 
+resource "aws_ssm_parameter" "backend_api_domain" {
+  name  = "/${var.ssm_param_prefix}/backend-api-domain"
+  type  = "String"
+  value = local.backend_api_domain
+
+  tags = local.tags
+}
+
+resource "aws_ssm_parameter" "backend_https_base_url" {
+  name  = "/${var.ssm_param_prefix}/backend-https-base-url"
+  type  = "String"
+  value = local.backend_https_base_url
+
+  tags = local.tags
+}
+
+resource "aws_ssm_parameter" "backend_tls_certificate_arn" {
+  name  = "/${var.ssm_param_prefix}/backend-tls-certificate-arn"
+  type  = "String"
+  value = aws_acm_certificate_validation.backend_api.certificate_arn
+
+  tags = local.tags
+}
+
 resource "aws_ssm_parameter" "waf_acl_arn" {
   name  = "/${var.ssm_param_prefix}/waf-acl-arn"
   type  = "String"

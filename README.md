@@ -1,17 +1,17 @@
-# To-do App (Spring Boot + React)
+# To-do App (Spring Boot + Expo)
 
-Full-stack to-do list app with a Spring Boot HATEOAS API, React + Bootstrap UI, local Docker support, and AWS deployment assets for EKS Fargate + RDS + Amplify.
+Full-stack to-do list app with a Spring Boot HATEOAS API, an Expo-based frontend, local Docker support, and AWS deployment assets for EKS Fargate + RDS + Amplify.
 
 ## Stack
 - Backend: Java 17, Spring Boot, Maven, PostgreSQL
-- Frontend: React, Vite, Bootstrap
+- Frontend: React Native Expo, TypeScript
 - Local deployment: Docker Compose
 - AWS deployment: Terraform, EKS Fargate, RDS PostgreSQL, Amplify Hosting
 - Monitoring: CloudWatch Logs, liveness/readiness probes, pod CPU/memory metrics
 
 ## Repository layout
 - `backend/`: Spring Boot API
-- `frontend/`: React application
+- `frontend/`: Expo application
 - `infra/`: Terraform infrastructure for AWS
 - `infra-backend/`: One-time Terraform bootstrap for shared remote state
 - `utility-containers/`: Dockerized AWS and Kubernetes CLI tools
@@ -39,7 +39,7 @@ npm install
 npm run dev
 ```
 
-Optionally set `VITE_API_BASE_URL` to point at the backend.
+Optionally set `EXPO_PUBLIC_API_BASE_URL` to point at the backend.
 
 ### Docker Compose (local)
 ```bash
@@ -123,8 +123,10 @@ export TF_VAR_github_repository="your-org/your-repo"
 export TF_VAR_environment="dev"
 export TF_VAR_aws_region="us-east-1"
 export TF_VAR_ssm_param_prefix="todo-dev"
+export TF_VAR_root_domain="example.com"
+export TF_VAR_backend_api_subdomain="api"
 export TF_VAR_db_username="todo"
-export TF_VAR_frontend_branch="master"
+export TF_VAR_frontend_branch="main"
 export TF_VAR_rds_multi_az="false"
 export TF_VAR_rds_deletion_protection="false"
 export TF_VAR_rds_skip_final_snapshot="true"
@@ -282,24 +284,26 @@ Workflows:
 - `.github/workflows/deploy-frontend.yml` (frontend build + Amplify deploy)
 - `.github/workflows/deploy-infra.yml` (Terraform plan/apply)
 
-On push to `master`:
+On push to `main`:
 - `backend/**` changes: build and push Docker image to ECR, update kubeconfig, roll out new image
-- `frontend/**` changes: build frontend with Vite, upload artifacts to Amplify
+- `frontend/**` changes: export the Expo web build and upload artifacts to Amplify
 - `infra/**` changes: run Terraform plan and apply
 
 Set these repository variables/secrets:
 - Variables:
   - `AWS_REGION`
-  - `AMPLIFY_BRANCH_NAME`
-  - `TF_VAR_PROJECT_NAME`
-  - `TF_VAR_K8S_NAMESPACE` (used by Terraform and backend deploy workflow as the Kubernetes namespace)
-  - `TF_VAR_GITHUB_REPOSITORY`
-  - `TF_VAR_ENVIRONMENT`
-  - `SSM_PARAM_PREFIX`
-  - `TF_VAR_DB_USERNAME`
-- Secrets:
   - `AWS_GITHUB_ACTIONS_ROLE_ARN`
-  - `TF_VAR_DB_PASSWORD`
+  - `AMPLIFY_BRANCH_NAME`
+  - `PROJECT_NAME`
+  - `K8S_NAMESPACE` (used by Terraform and backend deploy workflow as the Kubernetes namespace)
+  - `ENVIRONMENT`
+  - `SSM_PARAM_PREFIX`
+  - `ROOT_DOMAIN`
+  - `BACKEND_API_SUBDOMAIN`
+- Secrets:
+  - `DB_USERNAME`
+  - `DB_PASSWORD`
+  - `JWT_SECRET`
 
 SSM parameter path prefix is controlled by `SSM_PARAM_PREFIX` (without leading slash, example: `todo-dev`) and used by both Terraform and deploy workflows.
 
@@ -307,7 +311,8 @@ SSM parameter path prefix is controlled by `SSM_PARAM_PREFIX` (without leading s
 
 - Amplify app is provisioned via Terraform (`infra/amplify.tf`) as a hosting-only service
 - Frontend is built by GitHub Actions (`deploy-frontend.yml`) and deployed to Amplify via the AWS CLI
-- `VITE_API_BASE_URL` is injected at build time from SSM (`backend-public-url`, written by the backend deploy workflow)
+- `EXPO_PUBLIC_API_BASE_URL` is set at build time to the HTTPS backend base URL from SSM (`backend-public-url`)
+- In production the frontend calls the backend directly at `https://api.<root-domain>` (cross-origin); the backend's CORS configuration allows the Amplify origin
 - The Amplify app ID is written by Terraform to SSM and resolved by workflows at deploy time
 
 ## Auth

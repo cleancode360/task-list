@@ -6,15 +6,10 @@ import {
 function resolveBaseUrl(): string {
   const envUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
   if (envUrl) return envUrl;
-  if (!__DEV__) {
-    return Platform.OS === "web" ? "" : "http://localhost:8080";
-  }
   switch (Platform.OS) {
     case "android":
       return "http://10.0.2.2:8080";
-    case "web":
-      return "http://localhost:8080";
-    default: // ios
+    default:
       return "http://localhost:8080";
   }
 }

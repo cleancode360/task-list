@@ -107,7 +107,7 @@ resource "aws_iam_policy" "github_actions_infra_read" {
       {
         Effect   = "Allow"
         Action   = ["ssm:GetParameter", "ssm:GetParametersByPath", "ssm:PutParameter"]
-        Resource = "arn:aws:ssm:*:*:parameter/${var.ssm_param_prefix}/*"
+        Resource = "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${var.ssm_param_prefix}/*"
       }
     ]
   })
@@ -148,7 +148,7 @@ resource "aws_iam_policy" "github_actions_eks_describe" {
       {
         Effect   = "Allow"
         Action   = ["iam:GetRole"]
-        Resource = aws_iam_role.github_actions.arn
+        Resource = aws_iam_role.backend_secrets.arn
       }
     ]
   })

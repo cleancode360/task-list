@@ -20,7 +20,6 @@ env:
   ENVIRONMENT: ${{ vars.ENVIRONMENT }}
   K8S_NAMESPACE: ${{ vars.K8S_NAMESPACE }}
   DEPLOYMENT_NAME: ${{ vars.PROJECT_NAME }}-backend
-  INGRESS_NAME: ${{ vars.PROJECT_NAME }}-ingress
 
 jobs:
   deploy:
@@ -54,8 +53,10 @@ jobs:
           ECR_REPOSITORY=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/ecr-repository-name")) | .Value')
           RDS_ENDPOINT=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/rds-endpoint")) | .Value')
           DB_NAME=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/rds-db-name")) | .Value')
-          AMPLIFY_APP_ID=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/amplify-app-id")) | .Value')
           AMPLIFY_DOMAIN=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/amplify-default-domain")) | .Value')
+          BACKEND_API_DOMAIN=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/backend-api-domain")) | .Value')
+          BACKEND_HTTPS_BASE_URL=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/backend-https-base-url")) | .Value')
+          BACKEND_TLS_CERTIFICATE_ARN=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/backend-tls-certificate-arn")) | .Value')
           BACKEND_SECRETS_KEY=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/backend-secrets-key")) | .Value')
           WAF_ACL_ARN=$(echo "$PARAMETERS_JSON" | jq -r '.Parameters[] | select(.Name | endswith("/waf-acl-arn")) | .Value')
 
@@ -68,12 +69,14 @@ jobs:
             --query 'Role.Arn' \
             --output text)
           echo "EKS_CLUSTER_NAME=$EKS_CLUSTER_NAME" >> "$GITHUB_ENV"
-          echo "AMPLIFY_APP_ID=$AMPLIFY_APP_ID" >> "$GITHUB_ENV"
+          echo "BACKEND_HTTPS_BASE_URL=$BACKEND_HTTPS_BASE_URL" >> "$GITHUB_ENV"
 
           sed -i "s|#{IMAGE_URI}#|$IMAGE_URI|g" backend/k8s/deployment.yaml
           sed -i "s|#{RDS_ENDPOINT}#|$RDS_ENDPOINT|g" backend/k8s/configmap.yaml
           sed -i "s|#{DB_NAME}#|$DB_NAME|g" backend/k8s/configmap.yaml
           sed -i "s|#{AMPLIFY_DOMAIN}#|$AMPLIFY_DOMAIN|g" backend/k8s/configmap.yaml
+          sed -i "s|#{BACKEND_API_DOMAIN}#|$BACKEND_API_DOMAIN|g" backend/k8s/ingress.yaml
+          sed -i "s|#{BACKEND_TLS_CERTIFICATE_ARN}#|$BACKEND_TLS_CERTIFICATE_ARN|g" backend/k8s/ingress.yaml
           sed -i "s|#{SECRETS_MANAGER_KEY}#|$BACKEND_SECRETS_KEY|g" backend/k8s/configmap.yaml
           sed -i "s|#{BACKEND_SECRETS_ROLE_ARN}#|$BACKEND_SECRETS_ROLE_ARN|g" backend/k8s/service-account.yaml
           sed -i "s|#{WAF_ACL_ARN}#|$WAF_ACL_ARN|g" backend/k8s/ingress.yaml
@@ -111,32 +114,7 @@ jobs:
 
       - name: Publish backend URL to SSM
         run: |
-          ALB_HOSTNAME=""
-          for attempt in $(seq 1 60); do
-            ALB_HOSTNAME=$(kubectl get ingress "$INGRESS_NAME" -n "$K8S_NAMESPACE" \
-              -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-            if [ -n "$ALB_HOSTNAME" ]; then
-              break
-            fi
-            sleep 10
-          done
-          if [ -z "$ALB_HOSTNAME" ]; then
-            echo "Timed out waiting for ingress hostname on $INGRESS_NAME" >&2
-            exit 1
-          fi
-          cat > custom-rules.json <<EOF
-          [
-            {
-              "source": "/api/<*>",
-              "target": "http://$ALB_HOSTNAME/api/<*>",
-              "status": "200"
-            }
-          ]
-          EOF
-          aws amplify update-app \
-            --app-id "$AMPLIFY_APP_ID" \
-            --custom-rules file://custom-rules.json
           aws ssm put-parameter \
             --name "/$SSM_PARAM_PREFIX/backend-public-url" \
-            --value "/api" \
+            --value "$BACKEND_HTTPS_BASE_URL" \
             --type String --overwrite
