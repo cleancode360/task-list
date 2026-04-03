@@ -24,6 +24,16 @@ resource "aws_security_group" "alb_cloudfront_only" {
   tags = local.tags
 }
 
+resource "aws_security_group_rule" "eks_ingress_from_alb" {
+  type                     = "ingress"
+  from_port                = 8080
+  to_port                  = 8080
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.alb_cloudfront_only.id
+  security_group_id        = module.eks.cluster_primary_security_group_id
+  description              = "Allow ALB to reach backend pods"
+}
+
 module "alb_controller_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "~> 5.51"
