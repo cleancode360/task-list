@@ -129,15 +129,11 @@ jobs:
 
       - name: Publish backend URL to SSM
         run: |
-          if [ -n "$CF_DOMAIN" ]; then
-            BACKEND_PUBLIC_URL="https://$CF_DOMAIN"
-          else
-            echo "::warning::CloudFront domain not yet available — run deploy-infra then re-run this workflow"
-            INGRESS_NAME="${PROJECT_NAME}-ingress"
-            ALB_HOSTNAME=$(kubectl get ingress "$INGRESS_NAME" -n "$K8S_NAMESPACE" \
-              -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-            BACKEND_PUBLIC_URL="http://$ALB_HOSTNAME"
+          if [ -z "$CF_DOMAIN" ]; then
+            echo "::error::CloudFront domain not found in SSM — run deploy-infra first"
+            exit 1
           fi
+          BACKEND_PUBLIC_URL="https://$CF_DOMAIN"
           echo "Publishing backend-public-url: $BACKEND_PUBLIC_URL"
           aws ssm put-parameter \
             --name "/$SSM_PARAM_PREFIX/backend-public-url" \
