@@ -11,6 +11,22 @@ metadata:
   name: aws-logging
   namespace: aws-observability
 data:
+  parsers.conf: |
+    [PARSER]
+        Name cri
+        Format regex
+        Regex ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<log>.*)$
+        Time_Key time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L%z
+
+  filters.conf: |
+    [FILTER]
+        Name parser
+        Match *
+        Key_Name log
+        Parser cri
+        Reserve_Data On
+
   output.conf: |
     [OUTPUT]
         Name cloudwatch_logs
