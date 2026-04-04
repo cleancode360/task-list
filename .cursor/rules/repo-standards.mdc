@@ -53,6 +53,12 @@ This is a project supporting real financial sector features
     * lombok: @Value and @Qualifier as copyable annotations.
     * jackson.deserialization.fail-on-unknown-properties: false
   * NFR
+    * Security
+      * AWS Secrets Manager SDK for reading secrets from the backend
+      * user credentials on request headers, not on body which is logged
+      * BOLA-proof
+        * UUIDs as db records id
+      * `app.public-url` overrides `X-Forwarded-Proto` and `X-Forwarded-Host` so HATEOAS `_links` expose the public domain, not the internal ALB hostname
     * Usability: HATEOAS API
     * Maintainability and testability:
       * Screaming Architecture and Clean Architecture
@@ -120,7 +126,7 @@ This is a project supporting real financial sector features
         * logback with JSON encoder, SLF4JLogAdapter with SLF4J and LogPayload
         * logging in Controllers, RestControllerAdvice, external services requests
     * Portability: docker containers
-    * Availability: scalability / resilience / reliability
+    * reliability: scalability / resilience / Availability
       * RestControllerAdvice
       * custom ServletResponseException extending RuntimeException with status and a second constructor with cause Throwable
       * ErrorResponse with status, message, errors
@@ -131,12 +137,6 @@ This is a project supporting real financial sector features
         * OncePerRequestFilter with @Order(Ordered.HIGHEST_PRECEDENCE)
         * close no longer needed Closeable resources
         * pagination
-    * security
-      * AWS Secrets Manager SDK for reading secrets from the backend
-      * user credentials on request headers, not on body which is logged
-      * BOLA-proof
-        * UUIDs as db records id
-      * `app.public-url` overrides `X-Forwarded-Proto` and `X-Forwarded-Host` so HATEOAS `_links` expose the public domain, not the internal ALB hostname
 * infra
   * refresh infra/.terraform.lock.hcl after provider or module version constraints change
 

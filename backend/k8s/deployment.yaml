@@ -14,7 +14,7 @@ spec:
       labels:
         app: #{PROJECT_NAME}#-backend
       annotations:
-        checksum/config: "#{CONFIGMAP_HASH}#"
+        configmap-hash: "#{CONFIGMAP_HASH}#"
     spec:
       enableServiceLinks: false
       serviceAccountName: backend-secrets-sa
