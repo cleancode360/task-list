@@ -2,11 +2,12 @@ package click.cleancode360.todo.tag.infrastructure.controller.web;
 
 import click.cleancode360.todo.auth.domain.entity.User;
 import click.cleancode360.todo.auth.infrastructure.gatewayadapter.spring.CustomUserDetails;
-import click.cleancode360.todo.tag.application.usecase.TagUseCase;
+import click.cleancode360.todo.tag.domain.gateway.TagGateway;
+import click.cleancode360.todo.shared.pagination.domain.entity.PageResult;
+import click.cleancode360.todo.shared.pagination.infrastructure.gatewayadapter.spring.SpringPageMapper;
 import click.cleancode360.todo.tag.domain.entity.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
@@ -28,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class RESTTagController {
 
-    private final TagUseCase tagService;
+    private final TagGateway tagGateway;
     private final TagResponseAssembler tagResponseAssembler;
     private final PagedResourcesAssembler<Tag> pagedResourcesAssembler;
 
@@ -37,22 +38,22 @@ public class RESTTagController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             Pageable pageable) {
         User user = userDetails.getUser();
-        Page<Tag> page = tagService.getAll(user, pageable);
-        return pagedResourcesAssembler.toModel(page, tagResponseAssembler);
+        PageResult<Tag> result = tagGateway.getAll(user, SpringPageMapper.toPageRequest(pageable));
+        return pagedResourcesAssembler.toModel(SpringPageMapper.toPage(result, pageable), tagResponseAssembler);
     }
 
     @GetMapping("/{id}")
     public EntityModel<?> getTag(@PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
-        return tagResponseAssembler.toModel(tagService.getById(id, user));
+        return tagResponseAssembler.toModel(tagGateway.getById(id, user));
     }
 
     @PostMapping
     public ResponseEntity<EntityModel<?>> createTag(@Valid @RequestBody TagCreateRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
-        EntityModel<?> model = tagResponseAssembler.toModel(tagService.create(request.name(), user));
+        EntityModel<?> model = tagResponseAssembler.toModel(tagGateway.create(request.name(), user));
         return ResponseEntity.status(HttpStatus.CREATED).body(model);
     }
 
@@ -60,14 +61,14 @@ public class RESTTagController {
     public EntityModel<?> updateTag(@PathVariable Long id, @Valid @RequestBody TagUpdateRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
-        return tagResponseAssembler.toModel(tagService.update(id, request.name(), user));
+        return tagResponseAssembler.toModel(tagGateway.update(id, request.name(), user));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTag(@PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
-        tagService.delete(id, user);
+        tagGateway.delete(id, user);
         return ResponseEntity.noContent().build();
     }
 }

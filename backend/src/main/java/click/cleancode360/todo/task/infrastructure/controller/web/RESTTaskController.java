@@ -2,11 +2,12 @@ package click.cleancode360.todo.task.infrastructure.controller.web;
 
 import click.cleancode360.todo.auth.domain.entity.User;
 import click.cleancode360.todo.auth.infrastructure.gatewayadapter.spring.CustomUserDetails;
-import click.cleancode360.todo.task.application.usecase.TaskUseCase;
+import click.cleancode360.todo.task.domain.gateway.TaskGateway;
+import click.cleancode360.todo.shared.pagination.domain.entity.PageResult;
+import click.cleancode360.todo.shared.pagination.infrastructure.gatewayadapter.spring.SpringPageMapper;
 import click.cleancode360.todo.task.domain.entity.Task;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
@@ -28,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class RESTTaskController {
 
-    private final TaskUseCase taskService;
+    private final TaskGateway taskGateway;
     private final TaskSummaryAssembler taskSummaryAssembler;
     private final TaskResponseAssembler taskResponseAssembler;
     private final PagedResourcesAssembler<Task> pagedResourcesAssembler;
@@ -38,15 +39,15 @@ public class RESTTaskController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             Pageable pageable) {
         User user = userDetails.getUser();
-        Page<Task> page = taskService.getAll(user, pageable);
-        return pagedResourcesAssembler.toModel(page, taskSummaryAssembler);
+        PageResult<Task> result = taskGateway.getAll(user, SpringPageMapper.toPageRequest(pageable));
+        return pagedResourcesAssembler.toModel(SpringPageMapper.toPage(result, pageable), taskSummaryAssembler);
     }
 
     @GetMapping("/{id}")
     public EntityModel<?> getTask(@PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
-        return taskResponseAssembler.toModel(taskService.getById(id, user));
+        return taskResponseAssembler.toModel(taskGateway.getById(id, user));
     }
 
     @PostMapping
@@ -54,7 +55,7 @@ public class RESTTaskController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
         EntityModel<?> model = taskResponseAssembler.toModel(
-            taskService.create(request.title(), request.description(), request.tagNames(), user)
+            taskGateway.create(request.title(), request.description(), request.tagNames(), user)
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(model);
     }
@@ -64,7 +65,7 @@ public class RESTTaskController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
         return taskResponseAssembler.toModel(
-            taskService.update(id, request.title(), request.description(), request.completed(),
+            taskGateway.update(id, request.title(), request.description(), request.completed(),
                 request.tagNames(), user)
         );
     }
@@ -73,28 +74,28 @@ public class RESTTaskController {
     public EntityModel<?> toggleTask(@PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
-        return taskResponseAssembler.toModel(taskService.toggle(id, user));
+        return taskResponseAssembler.toModel(taskGateway.toggle(id, user));
     }
 
     @PostMapping("/{id}/tags/{tagId}")
     public EntityModel<?> addTag(@PathVariable Long id, @PathVariable Long tagId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
-        return taskResponseAssembler.toModel(taskService.addTag(id, tagId, user));
+        return taskResponseAssembler.toModel(taskGateway.addTag(id, tagId, user));
     }
 
     @DeleteMapping("/{id}/tags/{tagId}")
     public EntityModel<?> removeTag(@PathVariable Long id, @PathVariable Long tagId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
-        return taskResponseAssembler.toModel(taskService.removeTag(id, tagId, user));
+        return taskResponseAssembler.toModel(taskGateway.removeTag(id, tagId, user));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
-        taskService.delete(id, user);
+        taskGateway.delete(id, user);
         return ResponseEntity.noContent().build();
     }
 }

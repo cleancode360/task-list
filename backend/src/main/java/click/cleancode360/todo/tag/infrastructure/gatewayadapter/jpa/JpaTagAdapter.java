@@ -1,17 +1,17 @@
 package click.cleancode360.todo.tag.infrastructure.gatewayadapter.jpa;
 
 import click.cleancode360.todo.auth.domain.entity.User;
+import click.cleancode360.todo.shared.exception.domain.entity.ServletResponseException;
 import click.cleancode360.todo.shared.log.infrastructure.gatewayadapter.jpa.JpaQueryLogger;
+import click.cleancode360.todo.shared.pagination.domain.entity.PageRequest;
+import click.cleancode360.todo.shared.pagination.domain.entity.PageResult;
+import click.cleancode360.todo.shared.pagination.infrastructure.gatewayadapter.spring.SpringPageMapper;
 import click.cleancode360.todo.tag.domain.entity.Tag;
 import click.cleancode360.todo.tag.domain.gateway.TagGateway;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 @Repository
 @Transactional
@@ -22,13 +22,51 @@ public class JpaTagAdapter implements TagGateway {
     private final JpaQueryLogger queryLogger;
 
     @Override
-    public List<Tag> findAllByUser(User user) {
-        return queryLogger.queryAndLog("findAllByUser", () -> jpaRepository.findAllByUser(user));
+    public PageResult<Tag> getAll(User user, PageRequest pageRequest) {
+        return queryLogger.queryAndLog("findAllByUser", () ->
+            SpringPageMapper.toPageResult(
+                jpaRepository.findAllByUser(user, SpringPageMapper.toPageable(pageRequest))));
     }
 
     @Override
-    public Page<Tag> findAllByUser(User user, Pageable pageable) {
-        return queryLogger.queryAndLog("findAllByUser(pageable)", () -> jpaRepository.findAllByUser(user, pageable));
+    public Tag getById(Long id, User user) {
+        return queryLogger.queryAndLog("findByIdAndUser", () -> jpaRepository.findByIdAndUser(id, user))
+            .orElseThrow(() -> new ServletResponseException(404, "Tag not found: " + id));
+    }
+
+    @Override
+    public Tag create(String name, User user) {
+        findByNameIgnoreCaseAndUser(name, user).ifPresent(existing -> {
+            throw new ServletResponseException(409, "Tag already exists: " + name);
+        });
+        Tag tag = new Tag(name);
+        tag.setUser(user);
+        return save(tag);
+    }
+
+    @Override
+    public Tag update(Long id, String name, User user) {
+        Tag tag = getById(id, user);
+        findByNameIgnoreCaseAndUser(name, user)
+            .filter(existing -> !existing.getId().equals(id))
+            .ifPresent(existing -> {
+                throw new ServletResponseException(409, "Tag already exists: " + name);
+            });
+        tag.setName(name);
+        return save(tag);
+    }
+
+    @Override
+    public void delete(Long id, User user) {
+        Tag tag = getById(id, user);
+        for (var task : tag.getTasks()) {
+            task.removeTag(tag);
+        }
+        tag.getTasks().clear();
+        queryLogger.queryAndLog("delete", () -> {
+            jpaRepository.delete(tag);
+            return null;
+        });
     }
 
     @Override
@@ -44,13 +82,5 @@ public class JpaTagAdapter implements TagGateway {
     @Override
     public Tag save(Tag tag) {
         return queryLogger.queryAndLog("save", () -> jpaRepository.save(tag));
-    }
-
-    @Override
-    public void delete(Tag tag) {
-        queryLogger.queryAndLog("delete", () -> {
-            jpaRepository.delete(tag);
-            return null;
-        });
     }
 }
