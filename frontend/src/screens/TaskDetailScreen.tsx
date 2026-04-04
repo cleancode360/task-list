@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  View, Text, TextInput, Pressable, Switch, ScrollView, StyleSheet, Alert,
+  View, Text, TextInput, Pressable, Switch, ScrollView, StyleSheet, Alert, Platform,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { TaskStackParamList } from "../../App";
@@ -59,17 +59,21 @@ export default function TaskDetailScreen({ route, navigation }: Props) {
   };
 
   const handleDelete = async () => {
-    Alert.alert("Delete", "Are you sure?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          await apiFetch(task!._links.delete.href, { method: "DELETE" });
-          navigation.goBack();
-        },
-      },
-    ]);
+    const doDelete = async () => {
+      await apiFetch(task!._links.delete.href, { method: "DELETE" });
+      navigation.goBack();
+    };
+
+    if (Platform.OS === "web") {
+      if (window.confirm("Are you sure you want to delete this task?")) {
+        await doDelete();
+      }
+    } else {
+      Alert.alert("Delete", "Are you sure?", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: doDelete },
+      ]);
+    }
   };
 
   const handleToggle = async () => {

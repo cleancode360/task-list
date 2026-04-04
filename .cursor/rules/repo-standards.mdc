@@ -11,7 +11,7 @@ This is a project supporting real financial sector features
 ## Stack
 * Database: PostgreSQL
 * Backend: Spring Boot, Maven, Lombok, Logback SLF4J, Micrometer Tracing Bridge OTel, Redis
-* Frontend: React Native
+* Frontend: React Native Expo
 * Local deployment: Docker compose
 * AWS deployment: GitHub Actions, Terraform, EKS Fargate, Amplify Hosting, RDS PostgreSQL, CloudWatch Logs
 
@@ -42,6 +42,7 @@ This is a project supporting real financial sector features
   * default spring boot properties for local deployment
 * frontend
   * refresh frontend/package-lock.json after frontend/package.json is changed
+  * Support iOS, Android, and Web
 * backend
   * Use java records where possible
   * k8s
