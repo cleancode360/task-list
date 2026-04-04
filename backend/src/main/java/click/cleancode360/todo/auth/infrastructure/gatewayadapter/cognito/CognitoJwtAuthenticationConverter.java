@@ -10,7 +10,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -19,7 +18,6 @@ public class CognitoJwtAuthenticationConverter implements Converter<Jwt, Abstrac
     private final UserGateway userGateway;
 
     @Override
-    @Transactional
     public AbstractAuthenticationToken convert(Jwt jwt) {
         String cognitoSub = jwt.getSubject();
         String username = jwt.getClaimAsString("cognito:username");
