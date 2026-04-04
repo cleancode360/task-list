@@ -8,6 +8,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.Instant;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +19,8 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -26,7 +30,14 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class LocalSecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, LocalAuthFilter localAuthFilter) throws Exception {
+    public JwtDecoder jwtDecoder() {
+        return token -> new Jwt(token, Instant.now(), Instant.now().plusSeconds(300),
+            Map.of("alg", "none"), Map.of("sub", "local"));
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, UserGateway userGateway,
+                                                   @Value("${app.local-auth.username}") String localUsername) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .cors(Customizer.withDefaults())
@@ -37,14 +48,8 @@ public class LocalSecurityConfig {
                 .requestMatchers("/actuator/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(localAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(new LocalAuthFilter(userGateway, localUsername), UsernamePasswordAuthenticationFilter.class);
         return http.build();
-    }
-
-    @Bean
-    public LocalAuthFilter localAuthFilter(UserGateway userGateway,
-                                           @Value("${app.local-auth.username}") String localUsername) {
-        return new LocalAuthFilter(userGateway, localUsername);
     }
 
     static class LocalAuthFilter extends OncePerRequestFilter {

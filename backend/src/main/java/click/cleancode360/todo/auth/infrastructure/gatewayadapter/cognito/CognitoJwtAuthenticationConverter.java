@@ -5,6 +5,7 @@ import click.cleancode360.todo.auth.domain.gateway.UserGateway;
 import click.cleancode360.todo.auth.infrastructure.gatewayadapter.spring.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AbstractAuthenticationToken;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -29,11 +30,21 @@ public class CognitoJwtAuthenticationConverter implements Converter<Jwt, Abstrac
             username = cognitoSub;
         }
 
-        String resolvedUsername = username;
-        User user = userGateway.findByCognitoSub(cognitoSub)
-            .orElseGet(() -> userGateway.save(new User(cognitoSub, resolvedUsername)));
+        User user = findOrCreateUser(cognitoSub, username);
 
         CustomUserDetails userDetails = new CustomUserDetails(user);
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+    }
+
+    private User findOrCreateUser(String cognitoSub, String username) {
+        return userGateway.findByCognitoSub(cognitoSub)
+            .orElseGet(() -> {
+                try {
+                    return userGateway.save(new User(cognitoSub, username));
+                } catch (DataIntegrityViolationException e) {
+                    return userGateway.findByCognitoSub(cognitoSub)
+                        .orElseThrow(() -> e);
+                }
+            });
     }
 }
