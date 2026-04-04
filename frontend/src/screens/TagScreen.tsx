@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   View, Text, TextInput, Pressable, FlatList, StyleSheet, Alert, RefreshControl, Modal,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { apiFetch } from "../api/client";
 
 interface TagItem {
@@ -36,7 +37,7 @@ export default function TagScreen() {
     }
   }, [page]);
 
-  useEffect(() => { loadTags(page); }, [page]);
+  useFocusEffect(useCallback(() => { loadTags(page); }, [page]));
 
   const onRefresh = async () => {
     setRefreshing(true);

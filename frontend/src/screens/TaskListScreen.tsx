@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   View, Text, TextInput, Pressable, FlatList, StyleSheet, Alert, RefreshControl,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useFocusEffect } from "@react-navigation/native";
 import type { TaskStackParamList } from "../../App";
 import { apiFetch, auth } from "../api/client";
 
@@ -42,7 +43,7 @@ export default function TaskListScreen({ navigation }: Props) {
     }
   }, [page]);
 
-  useEffect(() => { loadTasks(page); }, [page]);
+  useFocusEffect(useCallback(() => { loadTasks(page); }, [page]));
 
   const onRefresh = async () => {
     setRefreshing(true);
