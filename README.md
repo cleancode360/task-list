@@ -254,6 +254,13 @@ aws logs tail /eks/todo-app --follow
 kubectl logs -f deployment/todo-backend -n todo-app
 ```
 
+Useful CloudWatch Logs Insights query:
+```sql
+fields @timestamp, level, traceId, message, payload.request, payload.response, payload.status, payload.durationMs, stack_trace
+| sort @timestamp desc
+| limit 100
+```
+
 ### CloudWatch alarms (RDS)
 - Terraform creates alarms for `CPUUtilization`, `FreeStorageSpace`, and `DatabaseConnections`
 - Alarm notifications are published to an SNS topic (`<project>-<environment>-infra-alerts`)
