@@ -31,10 +31,9 @@ variable "db_password" {
   sensitive   = true
 }
 
-variable "jwt_secret" {
-  description = "Secret key used to sign JWTs."
+variable "cognito_domain_prefix" {
+  description = "Cognito hosted UI domain prefix (must be globally unique)."
   type        = string
-  sensitive   = true
 }
 
 variable "frontend_branch" {

@@ -42,3 +42,18 @@ output "github_actions_role_arn" {
   description = "IAM role ARN to be assumed by GitHub Actions via OIDC."
   value       = aws_iam_role.github_actions.arn
 }
+
+output "cognito_user_pool_id" {
+  description = "Cognito User Pool ID for backend JWT validation."
+  value       = aws_cognito_user_pool.main.id
+}
+
+output "cognito_client_id" {
+  description = "Cognito app client ID for frontend authentication."
+  value       = aws_cognito_user_pool_client.main.id
+}
+
+output "cognito_domain" {
+  description = "Cognito Hosted UI domain."
+  value       = "${aws_cognito_user_pool_domain.main.domain}.auth.${var.aws_region}.amazoncognito.com"
+}

@@ -1,7 +1,9 @@
 import { Platform } from "react-native";
 import {
-  getToken, setToken, getRefreshToken, setRefreshToken, clearAllTokens,
+  getToken, setToken, getRefreshToken, setRefreshToken,
+  getIdToken, setIdToken, clearAllTokens,
 } from "./tokenStorage";
+import { discovery, cognitoClientId, getRedirectUri } from "./cognitoConfig";
 
 function resolveBaseUrl(): string {
   const envUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
@@ -24,18 +26,22 @@ async function tryRefresh(): Promise<boolean> {
   if (!refreshToken) return false;
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+    const response = await fetch(discovery.tokenEndpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken }),
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        client_id: cognitoClientId,
+        refresh_token: refreshToken,
+      }).toString(),
     });
     if (!response.ok) {
       await clearAllTokens();
       return false;
     }
     const data = await response.json();
-    await setToken(data.token);
-    await setRefreshToken(data.refreshToken);
+    await setToken(data.access_token);
+    if (data.id_token) await setIdToken(data.id_token);
     return true;
   } catch {
     await clearAllTokens();
@@ -93,27 +99,17 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
   return data;
 }
 
+export async function storeTokensFromCodeExchange(tokenResponse: {
+  accessToken: string;
+  idToken?: string;
+  refreshToken?: string;
+}): Promise<void> {
+  await setToken(tokenResponse.accessToken);
+  if (tokenResponse.idToken) await setIdToken(tokenResponse.idToken);
+  if (tokenResponse.refreshToken) await setRefreshToken(tokenResponse.refreshToken);
+}
+
 export const auth = {
-  login: async (username: string, password: string) => {
-    const data = await apiFetch("/api/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ username, password }),
-    });
-    if (data.token) {
-      await setToken(data.token);
-    }
-    if (data.refreshToken) {
-      await setRefreshToken(data.refreshToken);
-    }
-    return data;
-  },
-
-  register: (username: string, password: string) =>
-    apiFetch("/api/auth/register", {
-      method: "POST",
-      body: JSON.stringify({ username, password }),
-    }),
-
   logout: async () => {
     await clearAllTokens();
   },

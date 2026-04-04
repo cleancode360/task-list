@@ -11,6 +11,5 @@ resource "aws_secretsmanager_secret_version" "backend" {
   secret_string = jsonencode({
     "spring.datasource.username" = var.db_username
     "spring.datasource.password" = var.db_password
-    "app.jwt.secret"             = var.jwt_secret
   })
 }

@@ -23,6 +23,11 @@ public class JpaUserAdapter implements UserGateway {
     }
 
     @Override
+    public Optional<User> findByCognitoSub(String cognitoSub) {
+        return queryLogger.queryAndLog("findByCognitoSub", () -> jpaRepository.findByCognitoSub(cognitoSub));
+    }
+
+    @Override
     public User save(User user) {
         return queryLogger.queryAndLog("save", () -> jpaRepository.save(user));
     }

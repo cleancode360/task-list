@@ -1,21 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import LoginScreen from "./src/screens/LoginScreen";
-import RegisterScreen from "./src/screens/RegisterScreen";
+import AuthScreen from "./src/screens/AuthScreen";
 import TaskListScreen from "./src/screens/TaskListScreen";
 import TaskDetailScreen from "./src/screens/TaskDetailScreen";
 import TagScreen from "./src/screens/TagScreen";
 import { auth } from "./src/api/client";
-
-export type AuthStackParamList = {
-  Login: undefined;
-  Register: undefined;
-};
 
 export type MainTabParamList = {
   TasksTab: undefined;
@@ -27,7 +21,6 @@ export type TaskStackParamList = {
   TaskDetail: { id: number };
 };
 
-const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const TaskStack = createNativeStackNavigator<TaskStackParamList>();
 
@@ -83,12 +76,7 @@ export default function App() {
         {isLoggedIn ? (
           <MainTabs />
         ) : (
-          <AuthStack.Navigator screenOptions={{ headerShown: false }}>
-            <AuthStack.Screen name="Login">
-              {(props) => <LoginScreen {...props} onLoginSuccess={handleLoginSuccess} />}
-            </AuthStack.Screen>
-            <AuthStack.Screen name="Register" component={RegisterScreen} />
-          </AuthStack.Navigator>
+          <AuthScreen onLoginSuccess={handleLoginSuccess} />
         )}
       </NavigationContainer>
     </SafeAreaProvider>

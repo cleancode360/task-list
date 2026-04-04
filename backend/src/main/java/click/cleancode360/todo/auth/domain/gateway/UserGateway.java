@@ -5,5 +5,6 @@ import java.util.Optional;
 
 public interface UserGateway {
     Optional<User> findByUsername(String username);
+    Optional<User> findByCognitoSub(String cognitoSub);
     User save(User user);
 }

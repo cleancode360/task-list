@@ -24,18 +24,18 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
+    private String cognitoSub;
+
     @Column(nullable = false, unique = true, length = 50)
     private String username;
-
-    @Column(nullable = false)
-    private String password;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
-    public User(String username, String password) {
+    public User(String cognitoSub, String username) {
+        this.cognitoSub = cognitoSub;
         this.username = username;
-        this.password = password;
     }
 
     @PrePersist

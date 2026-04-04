@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 interface JpaUserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
+    Optional<User> findByCognitoSub(String cognitoSub);
 }

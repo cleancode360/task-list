@@ -78,3 +78,35 @@ resource "aws_ssm_parameter" "github_actions_role_arn" {
 
   tags = local.tags
 }
+
+resource "aws_ssm_parameter" "cognito_user_pool_id" {
+  name  = "/${var.ssm_param_prefix}/cognito-user-pool-id"
+  type  = "String"
+  value = aws_cognito_user_pool.main.id
+
+  tags = local.tags
+}
+
+resource "aws_ssm_parameter" "cognito_client_id" {
+  name  = "/${var.ssm_param_prefix}/cognito-client-id"
+  type  = "String"
+  value = aws_cognito_user_pool_client.main.id
+
+  tags = local.tags
+}
+
+resource "aws_ssm_parameter" "cognito_domain" {
+  name  = "/${var.ssm_param_prefix}/cognito-domain"
+  type  = "String"
+  value = "${aws_cognito_user_pool_domain.main.domain}.auth.${var.aws_region}.amazoncognito.com"
+
+  tags = local.tags
+}
+
+resource "aws_ssm_parameter" "cognito_issuer_uri" {
+  name  = "/${var.ssm_param_prefix}/cognito-issuer-uri"
+  type  = "String"
+  value = "https://cognito-idp.${var.aws_region}.amazonaws.com/${aws_cognito_user_pool.main.id}"
+
+  tags = local.tags
+}
