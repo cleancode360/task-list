@@ -2,9 +2,7 @@ package click.cleancode360.todo.shared.unbounded_concerns.framework.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.Duration;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -24,10 +22,8 @@ public class CacheConfig {
     private abstract static class HibernateProxyMixin {}
 
     @Bean
-    public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    public CacheManager cacheManager(RedisConnectionFactory connectionFactory, ObjectMapper springMapper) {
+        ObjectMapper mapper = springMapper.copy();
         mapper.addMixIn(Object.class, HibernateProxyMixin.class);
         mapper.activateDefaultTyping(
             mapper.getPolymorphicTypeValidator(),
