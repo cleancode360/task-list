@@ -24,5 +24,13 @@ services:
     volumes:
       - ../infra:/infra
 
+  maven:
+    image: maven:3.9.8-eclipse-temurin-17
+    working_dir: /workspace/backend
+    volumes:
+      - ..:/workspace
+      - maven-repo:/root/.m2
+
 volumes:
   kube-config:
+  maven-repo:

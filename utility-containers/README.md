@@ -1,6 +1,6 @@
 # Utility Containers
 
-Run AWS CLI and `kubectl` through Docker instead of installing them on your machine.
+Run AWS CLI, `kubectl`, Terraform, and Maven through Docker instead of installing them on your machine.
 
 ## Usage
 
@@ -22,6 +22,13 @@ Run AWS CLI commands:
 
 ```bash
 docker compose run --rm aws-kubectl -c "aws sts get-caller-identity"
+```
+
+Run Maven commands from the backend module:
+
+```bash
+docker compose run --rm maven mvn test
+docker compose run --rm maven mvn spring-boot:run
 ```
 
 Configure kubeconfig for EKS:
