@@ -73,6 +73,7 @@ jobs:
           sed -i "s|#{RDS_ENDPOINT}#|$RDS_ENDPOINT|g" backend/k8s/configmap.yaml
           sed -i "s|#{DB_NAME}#|$DB_NAME|g" backend/k8s/configmap.yaml
           sed -i "s|#{AMPLIFY_DOMAIN}#|$AMPLIFY_DOMAIN|g" backend/k8s/configmap.yaml
+          sed -i "s|#{CF_DOMAIN}#|$CF_DOMAIN|g" backend/k8s/configmap.yaml
           sed -i "s|#{SECRETS_MANAGER_KEY}#|$BACKEND_SECRETS_KEY|g" backend/k8s/configmap.yaml
           sed -i "s|#{BACKEND_SECRETS_ROLE_ARN}#|$BACKEND_SECRETS_ROLE_ARN|g" backend/k8s/service-account.yaml
           sed -i "s|#{ALB_SECURITY_GROUP_ID}#|$ALB_SECURITY_GROUP_ID|g" backend/k8s/ingress.yaml

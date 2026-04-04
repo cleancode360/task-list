@@ -135,6 +135,7 @@ This is a project supporting real financial sector features
       * user credentials on request headers, not on body which is logged
       * BOLA-proof
         * UUIDs as db records id
+      * `app.public-url` overrides `X-Forwarded-Proto` and `X-Forwarded-Host` so HATEOAS `_links` expose the public domain, not the internal ALB hostname
 * infra
   * refresh infra/.terraform.lock.hcl after provider or module version constraints change
 

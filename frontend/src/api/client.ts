@@ -44,7 +44,13 @@ async function tryRefresh(): Promise<boolean> {
 }
 
 export async function apiFetch(path: string, options: RequestInit = {}): Promise<any> {
-  const url = path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
+  let url: string;
+  if (path.startsWith("http")) {
+    const parsed = new URL(path);
+    url = `${API_BASE_URL}${parsed.pathname}${parsed.search}`;
+  } else {
+    url = `${API_BASE_URL}${path}`;
+  }
   const token = await getToken();
 
   const headers: Record<string, string> = {
