@@ -17,7 +17,7 @@ export const logoutUrl = `https://${COGNITO_DOMAIN}/logout`;
 export function getRedirectUri(): string {
   return makeRedirectUri({
     scheme: "todoapp",
-    path: "auth/callback",
+    ...(Platform.OS !== "web" ? { path: "auth/callback" } : {}),
     ...(Platform.OS === "web" ? { preferLocalhost: true } : {}),
   });
 }
