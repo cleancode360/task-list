@@ -114,14 +114,14 @@ This bootstrap expects the shared Terraform backend to exist already. Create it 
 Create `infra/terraform.tfvars` with the required variables:
 
 ```hcl
-aws_region        = "us-east-1"
-project_name      = "todo"
-environment       = "dev"
-github_repository = "your-org/your-repo"
-db_password       = "..."
-jwt_secret        = "..."
-k8s_namespace     = "todo"
-ssm_param_prefix  = "todo-dev"
+aws_region            = "us-east-1"
+project_name          = "todo"
+environment           = "dev"
+github_repository     = "your-org/your-repo"
+db_password           = "..."
+cognito_domain_prefix = "todo-dev-auth"
+k8s_namespace         = "todo"
+ssm_param_prefix      = "todo-dev"
 ```
 
 This file is gitignored because it contains sensitive values.

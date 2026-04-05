@@ -2,12 +2,16 @@
 
 Full-stack to-do list app with a Spring Boot HATEOAS API, an Expo-based frontend, local Docker support, and AWS deployment assets for EKS Fargate + RDS + Amplify.
 
+**Live environment:** https://todo-branch.dh7xfznvsgaah.amplifyapp.com/
+
 ## Stack
-- Backend: Java 17, Spring Boot, Maven, PostgreSQL
+- Backend: Java 17, Spring Boot 3, Maven, Lombok, Redis, Logback SLF4J, Micrometer Tracing Bridge OTel
+PostgreSQL
+- Database: PostgreSQL
 - Frontend: React Native Expo, TypeScript
 - Local deployment: Docker Compose
-- AWS deployment: Terraform, EKS Fargate, RDS PostgreSQL, Amplify Hosting
-- Monitoring: CloudWatch Logs, liveness/readiness probes, pod CPU/memory metrics
+- AWS deployment: Terraform, EKS Fargate, RDS PostgreSQL, ECR, Amplify Hosting, CloudFront, WAF, Cognito (OAuth2 / JWT)
+- Observability: CloudWatch Logs, CloudWatch Alarms, liveness/readiness probes, pod CPU/memory metrics
 
 ## Repository layout
 - `backend/`: Spring Boot API
@@ -25,21 +29,23 @@ Full-stack to-do list app with a Spring Boot HATEOAS API, an Expo-based frontend
 ### Backend
 ```bash
 cd backend
-mvn spring-boot:run
+SPRING_PROFILES_ACTIVE=local SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/todo mvn spring-boot:run
 ```
 
+The `local` profile bypasses Cognito JWT validation and auto-authenticates every request as a local user. A PostgreSQL instance must be running on `localhost:5432` (the Docker Compose `db` service works, or a standalone install).
+
 Environment variables (optional):
-- `SPRING_DATASOURCE_URL` (default: `jdbc:postgresql://localhost:5432/todo`)
-- `APP_CORS_ALLOWED_ORIGINS` (default: `http://localhost:5173`)
+- `SPRING_DATASOURCE_URL` (default: `jdbc:postgresql://db:5432/todo`)
+- `APP_CORS_ALLOWED_ORIGINS` (default: `http://localhost:3000`)
 
 ### Frontend
 ```bash
 cd frontend
 npm install
-npm run dev
+npx expo start
 ```
 
-Optionally set `EXPO_PUBLIC_API_BASE_URL` to point at the backend.
+Optionally set `EXPO_PUBLIC_API_BASE_URL` to point at the backend (default: `http://localhost:8080` on web/iOS, `http://10.0.2.2:8080` on Android emulator).
 
 ### Docker Compose (local)
 ```bash
@@ -123,6 +129,7 @@ export TF_VAR_github_repository="your-org/your-repo"
 export TF_VAR_environment="dev"
 export TF_VAR_aws_region="us-east-1"
 export TF_VAR_ssm_param_prefix="todo-dev"
+export TF_VAR_cognito_domain_prefix="todo-dev-auth"
 export TF_VAR_db_username="todo"
 export TF_VAR_frontend_branch="main"
 export TF_VAR_rds_multi_az="false"
@@ -155,6 +162,7 @@ Terraform provisions:
 - EKS cluster with Fargate profiles
 - RDS PostgreSQL
 - ECR repository for backend image
+- Cognito user pool, app client, and hosted UI domain
 - SSM Parameter Store entries for infra outputs consumed by CI/CD
 - IAM roles/policies (including GitHub Actions role)
 - Amplify app and production branch
@@ -167,9 +175,11 @@ Terraform provisions:
 ## Kubernetes deployment workflow
 
 1. Placeholder resolution:
-- `backend/k8s/configmap.yaml` uses `#{RDS_ENDPOINT}#`, `#{DB_NAME}#`, `#{AMPLIFY_DOMAIN}#`, `#{SECRETS_MANAGER_KEY}#`, and `#{AWS_REGION}#`
+- `backend/k8s/configmap.yaml` uses `#{RDS_ENDPOINT}#`, `#{DB_NAME}#`, `#{AMPLIFY_DOMAIN}#`, `#{CF_DOMAIN}#`, `#{SECRETS_MANAGER_KEY}#`, `#{COGNITO_USER_POOL_ID}#`, `#{AWS_REGION}#`, and `#{K8S_NAMESPACE}#`
 - `backend/k8s/aws-logging.yaml` uses `#{AWS_REGION}#` and `#{PROJECT_NAME}#`
-- `backend/k8s/deployment.yaml` uses `#{IMAGE_URI}#`
+- `backend/k8s/deployment.yaml` uses `#{IMAGE_URI}#`, `#{CONFIGMAP_HASH}#`, `#{PROJECT_NAME}#`, and `#{K8S_NAMESPACE}#`
+- `backend/k8s/ingress.yaml` uses `#{ALB_SECURITY_GROUP_ID}#`, `#{PROJECT_NAME}#`, and `#{K8S_NAMESPACE}#`
+- `backend/k8s/service-account.yaml` uses `#{BACKEND_SECRETS_ROLE_ARN}#` and `#{K8S_NAMESPACE}#`
 - `backend/k8s/deployment-debug.yaml` uses `#{IMAGE_URI}#`, `#{K8S_NAMESPACE}#`, and `#{PROJECT_NAME}#`
 - In CI/CD, `deploy-backend.yml` resolves these values automatically (infra values from SSM, image URI from build step)
 
@@ -177,10 +187,13 @@ Terraform provisions:
 ```bash
 kubectl apply -f backend/k8s/namespace.yaml
 kubectl apply -f backend/k8s/aws-logging.yaml
-kubectl apply -f backend/k8s/service-account.yaml
 kubectl apply -f backend/k8s/configmap.yaml
+kubectl apply -f backend/k8s/service-account.yaml
 kubectl apply -f backend/k8s/deployment.yaml
 kubectl apply -f backend/k8s/service.yaml
+kubectl apply -f backend/k8s/redis-deployment.yaml
+kubectl apply -f backend/k8s/redis-service.yaml
+kubectl apply -f backend/k8s/hpa.yaml
 kubectl apply -f backend/k8s/ingress.yaml
 ```
 
@@ -305,10 +318,10 @@ Set these repository variables/secrets:
   - `K8S_NAMESPACE` (used by Terraform and backend deploy workflow as the Kubernetes namespace)
   - `ENVIRONMENT`
   - `SSM_PARAM_PREFIX`
+  - `COGNITO_DOMAIN_PREFIX` (globally unique prefix for the Cognito hosted UI domain)
 - Secrets:
   - `DB_USERNAME`
   - `DB_PASSWORD`
-  - `JWT_SECRET`
 
 SSM parameter path prefix is controlled by `SSM_PARAM_PREFIX` (without leading slash, example: `todo-dev`) and used by both Terraform and deploy workflows.
 
@@ -316,7 +329,10 @@ SSM parameter path prefix is controlled by `SSM_PARAM_PREFIX` (without leading s
 
 - Amplify app is provisioned via Terraform (`infra/amplify.tf`) as a hosting-only service
 - Frontend is built by GitHub Actions (`deploy-frontend.yml`) and deployed to Amplify via the AWS CLI
-- `EXPO_PUBLIC_API_BASE_URL` is set at build time to the HTTPS backend base URL from SSM (`backend-public-url`)
+- Build-time environment variables resolved from SSM:
+  - `EXPO_PUBLIC_API_BASE_URL` — HTTPS backend base URL (`backend-public-url`)
+  - `EXPO_PUBLIC_COGNITO_CLIENT_ID` — Cognito app client ID (`cognito-client-id`)
+  - `EXPO_PUBLIC_COGNITO_DOMAIN` — Cognito hosted UI domain (`cognito-domain`)
 - In production the frontend calls the backend via CloudFront at `https://<id>.cloudfront.net` (cross-origin); the backend's CORS configuration allows the Amplify origin
 - The Amplify app ID is written by Terraform to SSM and resolved by workflows at deploy time
 
@@ -337,50 +353,59 @@ CloudFront is created conditionally: on the very first deploy the ALB does not y
 After the initial bootstrap, all three workflows are independent and the ALB hostname is stable.
 
 ## Auth
-The app supports multiple users with session-based authentication. Users register via the UI or `POST /api/auth/register`, then log in to receive a `JSESSIONID` session cookie. Each user's tasks and tags are fully isolated.
+The app uses AWS Cognito for authentication via OAuth2 Authorization Code flow with PKCE. The frontend redirects to the Cognito hosted UI for sign-up/login and exchanges the authorization code for JWT tokens. The backend is a stateless OAuth2 resource server that validates Cognito-issued JWTs.
+
+### Production flow
+1. Frontend redirects the user to the Cognito hosted UI (`/oauth2/authorize`)
+2. User signs up or logs in on the Cognito-hosted page
+3. Cognito redirects back with an authorization code
+4. Frontend exchanges the code for access, ID, and refresh tokens via the Cognito token endpoint
+5. Frontend sends the access token as a `Bearer` token in the `Authorization` header on every API request
+6. Backend validates the JWT against the Cognito issuer URI
+
+### Local development flow
+When `SPRING_PROFILES_ACTIVE=local`, the backend bypasses Cognito and auto-authenticates every request as a local user (configured via `app.local-auth.username` in `application-local.yml`). No token is required.
 
 ### Endpoints
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | `/api/auth/register` | No | Create a new account |
-| POST | `/api/auth/login` | No | Log in and start a session |
-| GET | `/api/auth/me` | Yes | Get current session user |
-| POST | `/api/auth/logout` | Yes | Invalidate session |
+| GET | `/api/auth/me` | Yes | Get current authenticated user |
 
 ### Data isolation
 Tasks and tags are scoped per user. A user can only read, update, and delete their own data.
 
 ## API examples (HATEOAS)
+
+### Local development (no token required)
+
+With the `local` profile active, every request is auto-authenticated:
+
 ```bash
-# Register a new user
-curl -c cookies.txt -H "Content-Type: application/json" \
-  -d '{"username":"alice","password":"secret123"}' \
-  http://localhost:8080/api/auth/register
-
-# Log in (stores session cookie)
-curl -c cookies.txt -H "Content-Type: application/json" \
-  -d '{"username":"alice","password":"secret123"}' \
-  http://localhost:8080/api/auth/login
-
-# Use the session cookie for subsequent requests
-curl -b cookies.txt http://localhost:8080/api/tasks
-curl -b cookies.txt http://localhost:8080/api/tasks/1
-curl -b cookies.txt -H "Content-Type: application/json" \
+curl http://localhost:8080/api/auth/me
+curl http://localhost:8080/api/tasks
+curl http://localhost:8080/api/tasks/1
+curl -H "Content-Type: application/json" \
   -d '{"title":"First task","description":"Write docs"}' \
   http://localhost:8080/api/tasks
-curl -b cookies.txt http://localhost:8080/api/tags
-curl -b cookies.txt -H "Content-Type: application/json" \
+curl http://localhost:8080/api/tags
+curl -H "Content-Type: application/json" \
   -d '{"name":"work"}' \
   http://localhost:8080/api/tags
-curl -b cookies.txt -X PUT -H "Content-Type: application/json" \
+curl -X PUT -H "Content-Type: application/json" \
   -d '{"name":"personal"}' \
   http://localhost:8080/api/tags/1
-curl -b cookies.txt -X DELETE http://localhost:8080/api/tags/1
-curl -b cookies.txt -X POST http://localhost:8080/api/tasks/1/tags/2
-curl -b cookies.txt -X DELETE http://localhost:8080/api/tasks/1/tags/2
+curl -X DELETE http://localhost:8080/api/tags/1
+curl -X POST http://localhost:8080/api/tasks/1/tags/2
+curl -X DELETE http://localhost:8080/api/tasks/1/tags/2
+```
 
-# Log out
-curl -b cookies.txt -X POST http://localhost:8080/api/auth/logout
+### Production (Bearer token)
+
+Obtain a Cognito access token and pass it in the `Authorization` header:
+
+```bash
+TOKEN="<cognito-access-token>"
+curl -H "Authorization: Bearer $TOKEN" https://<cloudfront-domain>/api/tasks
 ```
 
 HATEOAS links are exposed in `_links` for each entity to guide updates, deletes, and toggles.

@@ -46,6 +46,7 @@ public class LocalSecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(new LocalAuthFilter(userGateway, localUsername), UsernamePasswordAuthenticationFilter.class);

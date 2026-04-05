@@ -42,6 +42,13 @@ spring:
         jwt:
           issuer-uri: ${COGNITO_ISSUER_URI:}
 
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: method
+  show-actuator: false
+
 app:
   public-url: ${APP_PUBLIC_URL:}
   cors:
