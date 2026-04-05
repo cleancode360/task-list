@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import {
-  View, Text, TextInput, Pressable, FlatList, StyleSheet, Alert, RefreshControl, Modal,
+  View, Text, TextInput, Pressable, FlatList, StyleSheet, Alert, RefreshControl, Modal, ActivityIndicator,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { apiFetch } from "../api/client";
@@ -23,17 +23,22 @@ export default function TagScreen() {
   const [pageInfo, setPageInfo] = useState<PageInfo>({ number: 0, totalPages: 0, totalElements: 0 });
   const [name, setName] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [renameTag, setRenameTag] = useState<TagItem | null>(null);
   const [renameName, setRenameName] = useState("");
 
   const loadTags = useCallback(async (p = page) => {
     try {
+      setError(null);
       const data = await apiFetch(`/api/tags?page=${p}&size=20`);
       setTags(data?._embedded?.tags || []);
       setPageInfo(data?.page || { number: 0, totalPages: 0, totalElements: 0 });
-    } catch {
-      // handled
+    } catch (err: any) {
+      setError(err.message ?? "Failed to load tags");
+    } finally {
+      setLoading(false);
     }
   }, [page]);
 
@@ -58,8 +63,12 @@ export default function TagScreen() {
   };
 
   const handleDelete = async (tag: TagItem) => {
-    await apiFetch(tag._links.delete.href, { method: "DELETE" });
-    loadTags(page);
+    try {
+      await apiFetch(tag._links.delete.href, { method: "DELETE" });
+      loadTags(page);
+    } catch (err: any) {
+      Alert.alert("Error", err.message ?? "Failed to delete tag");
+    }
   };
 
   const openRenameModal = (tag: TagItem) => {
@@ -69,13 +78,17 @@ export default function TagScreen() {
 
   const handleRenameSubmit = async () => {
     if (!renameTag || !renameName.trim()) return;
-    await apiFetch(renameTag._links.update.href, {
-      method: "PUT",
-      body: JSON.stringify({ name: renameName.trim() }),
-    });
-    setRenameTag(null);
-    setRenameName("");
-    loadTags(page);
+    try {
+      await apiFetch(renameTag._links.update.href, {
+        method: "PUT",
+        body: JSON.stringify({ name: renameName.trim() }),
+      });
+      setRenameTag(null);
+      setRenameName("");
+      loadTags(page);
+    } catch (err: any) {
+      Alert.alert("Error", err.message ?? "Failed to rename tag");
+    }
   };
 
   const renderTag = ({ item }: { item: TagItem }) => (
@@ -92,8 +105,25 @@ export default function TagScreen() {
     </View>
   );
 
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#007bff" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
+      {error && (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorText}>{error}</Text>
+          <Pressable onPress={() => { setLoading(true); loadTags(page); }}>
+            <Text style={styles.retryText}>Retry</Text>
+          </Pressable>
+        </View>
+      )}
+
       <View style={styles.formRow}>
         <TextInput style={styles.input} placeholder="New tag name" value={name} onChangeText={setName} />
         <Pressable style={styles.addBtn} onPress={handleCreate}>
@@ -150,6 +180,10 @@ export default function TagScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5" },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f5f5f5" },
+  errorBanner: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: "#f8d7da", marginHorizontal: 16, marginTop: 12, padding: 12, borderRadius: 8 },
+  errorText: { color: "#721c24", flex: 1, fontWeight: "500" },
+  retryText: { color: "#007bff", fontWeight: "600", marginLeft: 12 },
   formRow: { flexDirection: "row", padding: 16, gap: 10 },
   input: { flex: 1, borderWidth: 1, borderColor: "#ddd", borderRadius: 8, padding: 12, fontSize: 16, backgroundColor: "#fff" },
   addBtn: { backgroundColor: "#007bff", borderRadius: 8, paddingHorizontal: 20, justifyContent: "center" },

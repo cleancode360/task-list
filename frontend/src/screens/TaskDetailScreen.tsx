@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  View, Text, TextInput, Pressable, Switch, ScrollView, StyleSheet, Alert, Platform,
+  View, Text, TextInput, Pressable, Switch, ScrollView, StyleSheet, Alert, Platform, ActivityIndicator,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { TaskStackParamList } from "../../App";
@@ -60,8 +60,12 @@ export default function TaskDetailScreen({ route, navigation }: Props) {
 
   const handleDelete = async () => {
     const doDelete = async () => {
-      await apiFetch(task!._links.delete.href, { method: "DELETE" });
-      navigation.goBack();
+      try {
+        await apiFetch(task!._links.delete.href, { method: "DELETE" });
+        navigation.goBack();
+      } catch (err: any) {
+        setError(err.message ?? "Failed to delete task");
+      }
     };
 
     if (Platform.OS === "web") {
@@ -77,14 +81,27 @@ export default function TaskDetailScreen({ route, navigation }: Props) {
   };
 
   const handleToggle = async () => {
-    await apiFetch(task!._links.toggle.href, { method: "POST" });
-    loadTask();
+    try {
+      await apiFetch(task!._links.toggle.href, { method: "POST" });
+      loadTask();
+    } catch (err: any) {
+      setError(err.message ?? "Failed to toggle task");
+    }
   };
 
   if (!task) {
     return (
       <View style={styles.centered}>
-        {error ? <Text style={styles.error}>{error}</Text> : <Text>Loading...</Text>}
+        {error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.error}>{error}</Text>
+            <Pressable style={styles.retryBtn} onPress={loadTask}>
+              <Text style={styles.retryBtnText}>Retry</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <ActivityIndicator size="large" color="#007bff" />
+        )}
       </View>
     );
   }
@@ -143,7 +160,10 @@ export default function TaskDetailScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5" },
   content: { padding: 16 },
-  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f5f5f5" },
+  errorContainer: { alignItems: "center", paddingHorizontal: 32 },
+  retryBtn: { marginTop: 16, backgroundColor: "#007bff", borderRadius: 8, paddingHorizontal: 24, paddingVertical: 10 },
+  retryBtnText: { color: "#fff", fontWeight: "600" },
   card: { backgroundColor: "#fff", borderRadius: 12, padding: 16, marginBottom: 12, elevation: 2, shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 6, shadowOffset: { width: 0, height: 1 } },
   label: { fontSize: 14, fontWeight: "600", marginBottom: 4, marginTop: 12 },
   input: { borderWidth: 1, borderColor: "#ddd", borderRadius: 8, padding: 12, fontSize: 16 },

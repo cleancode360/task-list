@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import {
-  View, Text, TextInput, Pressable, FlatList, StyleSheet, Alert, RefreshControl,
+  View, Text, TextInput, Pressable, FlatList, StyleSheet, Alert, RefreshControl, ActivityIndicator,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
@@ -28,6 +28,8 @@ export default function TaskListScreen({ navigation }: Props) {
   const [page, setPage] = useState(0);
   const [pageInfo, setPageInfo] = useState<PageInfo>({ number: 0, totalPages: 0, totalElements: 0 });
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
@@ -35,11 +37,14 @@ export default function TaskListScreen({ navigation }: Props) {
 
   const loadTasks = useCallback(async (p = page) => {
     try {
+      setError(null);
       const data = await apiFetch(`/api/tasks?page=${p}&size=20&sort=createdAt,desc`);
       setTasks(data?._embedded?.tasks || []);
       setPageInfo(data?.page || { number: 0, totalPages: 0, totalElements: 0 });
-    } catch {
-      // handled by apiFetch
+    } catch (err: any) {
+      setError(err.message ?? "Failed to load tasks");
+    } finally {
+      setLoading(false);
     }
   }, [page]);
 
@@ -71,13 +76,21 @@ export default function TaskListScreen({ navigation }: Props) {
   };
 
   const handleToggle = async (task: TaskSummary) => {
-    await apiFetch(task._links.toggle.href, { method: "POST" });
-    loadTasks(page);
+    try {
+      await apiFetch(task._links.toggle.href, { method: "POST" });
+      loadTasks(page);
+    } catch (err: any) {
+      Alert.alert("Error", err.message ?? "Failed to toggle task");
+    }
   };
 
   const handleDelete = async (task: TaskSummary) => {
-    await apiFetch(task._links.delete.href, { method: "DELETE" });
-    loadTasks(page);
+    try {
+      await apiFetch(task._links.delete.href, { method: "DELETE" });
+      loadTasks(page);
+    } catch (err: any) {
+      Alert.alert("Error", err.message ?? "Failed to delete task");
+    }
   };
 
   const handleLogout = async () => {
@@ -110,8 +123,25 @@ export default function TaskListScreen({ navigation }: Props) {
     </Pressable>
   );
 
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#007bff" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
+      {error && (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorText}>{error}</Text>
+          <Pressable onPress={() => { setLoading(true); loadTasks(page); }}>
+            <Text style={styles.retryText}>Retry</Text>
+          </Pressable>
+        </View>
+      )}
+
       <Pressable style={styles.addButton} onPress={() => setShowForm(!showForm)}>
         <Text style={styles.addButtonText}>{showForm ? "Cancel" : "+ New Task"}</Text>
       </Pressable>
@@ -153,6 +183,10 @@ export default function TaskListScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5" },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f5f5f5" },
+  errorBanner: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: "#f8d7da", marginHorizontal: 16, marginTop: 12, padding: 12, borderRadius: 8 },
+  errorText: { color: "#721c24", flex: 1, fontWeight: "500" },
+  retryText: { color: "#007bff", fontWeight: "600", marginLeft: 12 },
   addButton: { margin: 16, marginBottom: 8, backgroundColor: "#007bff", borderRadius: 8, padding: 12, alignItems: "center" },
   addButtonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
   formCard: { marginHorizontal: 16, marginBottom: 8, backgroundColor: "#fff", borderRadius: 12, padding: 16, elevation: 2, shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 6, shadowOffset: { width: 0, height: 1 } },
