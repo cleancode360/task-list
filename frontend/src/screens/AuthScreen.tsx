@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   View, Text, Pressable, StyleSheet, ActivityIndicator,
 } from "react-native";
+import ErrorBanner from "../components/ErrorBanner";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import { discovery, cognitoClientId, getRedirectUri } from "../api/cognitoConfig";
@@ -80,7 +81,7 @@ export default function AuthScreen({ onLoginSuccess }: Props) {
       <View style={styles.card}>
         <Text style={styles.title}>Welcome</Text>
         <Text style={styles.subtitle}>Sign in to manage your tasks</Text>
-        {error && <Text style={styles.error}>{error}</Text>}
+        {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
         <Pressable
           style={[styles.button, (loading || !request) && styles.buttonDisabled]}
           onPress={handleSignIn}
@@ -109,8 +110,4 @@ const styles = StyleSheet.create({
   button: { backgroundColor: "#007bff", borderRadius: 8, padding: 14, alignItems: "center", width: "100%" },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  error: {
-    backgroundColor: "#f8d7da", color: "#721c24", padding: 12, borderRadius: 8,
-    marginBottom: 16, overflow: "hidden", width: "100%", textAlign: "center",
-  },
 });

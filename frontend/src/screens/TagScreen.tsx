@@ -1,7 +1,9 @@
 import { useCallback, useState } from "react";
 import {
-  View, Text, TextInput, Pressable, FlatList, StyleSheet, Alert, RefreshControl, Modal, ActivityIndicator,
+  View, Text, TextInput, Pressable, FlatList, StyleSheet, Alert, RefreshControl, Modal,
 } from "react-native";
+import LoadingScreen from "../components/LoadingScreen";
+import ErrorBanner from "../components/ErrorBanner";
 import { useFocusEffect } from "@react-navigation/native";
 import { apiFetch } from "../api/client";
 
@@ -106,22 +108,13 @@ export default function TagScreen() {
   );
 
   if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#007bff" />
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   return (
     <View style={styles.container}>
       {error && (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorText}>{error}</Text>
-          <Pressable onPress={() => { setLoading(true); loadTags(page); }}>
-            <Text style={styles.retryText}>Retry</Text>
-          </Pressable>
-        </View>
+        <ErrorBanner message={error} onRetry={() => { setLoading(true); loadTags(page); }} />
       )}
 
       <View style={styles.formRow}>
@@ -180,10 +173,6 @@ export default function TagScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5" },
-  centered: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f5f5f5" },
-  errorBanner: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: "#f8d7da", marginHorizontal: 16, marginTop: 12, padding: 12, borderRadius: 8 },
-  errorText: { color: "#721c24", flex: 1, fontWeight: "500" },
-  retryText: { color: "#007bff", fontWeight: "600", marginLeft: 12 },
   formRow: { flexDirection: "row", padding: 16, gap: 10 },
   input: { flex: 1, borderWidth: 1, borderColor: "#ddd", borderRadius: 8, padding: 12, fontSize: 16, backgroundColor: "#fff" },
   addBtn: { backgroundColor: "#007bff", borderRadius: 8, paddingHorizontal: 20, justifyContent: "center" },

@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import {
-  View, Text, TextInput, Pressable, Switch, ScrollView, StyleSheet, Alert, Platform, ActivityIndicator,
+  View, Text, TextInput, Pressable, Switch, ScrollView, StyleSheet, Alert, Platform,
 } from "react-native";
+import LoadingScreen from "../components/LoadingScreen";
+import ErrorBanner from "../components/ErrorBanner";
+import ErrorScreen from "../components/ErrorScreen";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { TaskStackParamList } from "../../App";
 import { apiFetch } from "../api/client";
@@ -90,25 +93,15 @@ export default function TaskDetailScreen({ route, navigation }: Props) {
   };
 
   if (!task) {
-    return (
-      <View style={styles.centered}>
-        {error ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.error}>{error}</Text>
-            <Pressable style={styles.retryBtn} onPress={loadTask}>
-              <Text style={styles.retryBtnText}>Retry</Text>
-            </Pressable>
-          </View>
-        ) : (
-          <ActivityIndicator size="large" color="#007bff" />
-        )}
-      </View>
-    );
+    if (error) {
+      return <ErrorScreen message={error} onRetry={loadTask} />;
+    }
+    return <LoadingScreen />;
   }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
 
       {task.tags?.length > 0 && (
         <View style={styles.tagsRow}>
@@ -160,10 +153,6 @@ export default function TaskDetailScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5" },
   content: { padding: 16 },
-  centered: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f5f5f5" },
-  errorContainer: { alignItems: "center", paddingHorizontal: 32 },
-  retryBtn: { marginTop: 16, backgroundColor: "#007bff", borderRadius: 8, paddingHorizontal: 24, paddingVertical: 10 },
-  retryBtnText: { color: "#fff", fontWeight: "600" },
   card: { backgroundColor: "#fff", borderRadius: 12, padding: 16, marginBottom: 12, elevation: 2, shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 6, shadowOffset: { width: 0, height: 1 } },
   label: { fontSize: 14, fontWeight: "600", marginBottom: 4, marginTop: 12 },
   input: { borderWidth: 1, borderColor: "#ddd", borderRadius: 8, padding: 12, fontSize: 16 },
@@ -179,5 +168,4 @@ const styles = StyleSheet.create({
   badge: { backgroundColor: "#6c757d", borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, marginRight: 6, marginBottom: 4 },
   badgeText: { color: "#fff", fontSize: 12, fontWeight: "600" },
   metaLabel: { fontSize: 13, color: "#888", marginBottom: 4 },
-  error: { backgroundColor: "#f8d7da", color: "#721c24", padding: 12, borderRadius: 8, marginBottom: 12, overflow: "hidden" },
 });

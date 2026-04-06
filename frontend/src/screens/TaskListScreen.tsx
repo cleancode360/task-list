@@ -1,7 +1,9 @@
 import { useCallback, useState } from "react";
 import {
-  View, Text, TextInput, Pressable, FlatList, StyleSheet, Alert, RefreshControl, ActivityIndicator,
+  View, Text, TextInput, Pressable, FlatList, StyleSheet, Alert, RefreshControl,
 } from "react-native";
+import LoadingScreen from "../components/LoadingScreen";
+import ErrorBanner from "../components/ErrorBanner";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import type { TaskStackParamList } from "../../App";
@@ -124,22 +126,13 @@ export default function TaskListScreen({ navigation }: Props) {
   );
 
   if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#007bff" />
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   return (
     <View style={styles.container}>
       {error && (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorText}>{error}</Text>
-          <Pressable onPress={() => { setLoading(true); loadTasks(page); }}>
-            <Text style={styles.retryText}>Retry</Text>
-          </Pressable>
-        </View>
+        <ErrorBanner message={error} onRetry={() => { setLoading(true); loadTasks(page); }} />
       )}
 
       <Pressable style={styles.addButton} onPress={() => setShowForm(!showForm)}>
@@ -183,10 +176,6 @@ export default function TaskListScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5" },
-  centered: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f5f5f5" },
-  errorBanner: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: "#f8d7da", marginHorizontal: 16, marginTop: 12, padding: 12, borderRadius: 8 },
-  errorText: { color: "#721c24", flex: 1, fontWeight: "500" },
-  retryText: { color: "#007bff", fontWeight: "600", marginLeft: 12 },
   addButton: { margin: 16, marginBottom: 8, backgroundColor: "#007bff", borderRadius: 8, padding: 12, alignItems: "center" },
   addButtonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
   formCard: { marginHorizontal: 16, marginBottom: 8, backgroundColor: "#fff", borderRadius: 12, padding: 16, elevation: 2, shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 6, shadowOffset: { width: 0, height: 1 } },
