@@ -1,3 +1,12 @@
+resource "aws_iam_service_linked_role" "eks" {
+  aws_service_name = "eks.amazonaws.com"
+}
+
+import {
+  to = aws_iam_service_linked_role.eks
+  id = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/eks.amazonaws.com/AWSServiceRoleForAmazonEKS"
+}
+
 resource "aws_iam_policy" "fargate_secrets_access" {
   name        = "${local.name_prefix}-fargate-secrets-access"
   description = "Allow backend pods to read runtime secrets"
