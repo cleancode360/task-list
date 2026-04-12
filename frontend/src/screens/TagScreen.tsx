@@ -8,7 +8,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { apiFetch } from "../api/client";
 
 interface TagItem {
-  id: number;
+  id: string;
   name: string;
   _links: Record<string, { href: string }>;
 }

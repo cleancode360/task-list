@@ -7,10 +7,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-interface JpaTaskRepository extends JpaRepository<Task, Long> {
+interface JpaTaskRepository extends JpaRepository<Task, UUID> {
     @EntityGraph(attributePaths = "tags")
     List<Task> findAllByUser(User user);
 
@@ -18,5 +19,5 @@ interface JpaTaskRepository extends JpaRepository<Task, Long> {
     Page<Task> findAllByUser(User user, Pageable pageable);
 
     @EntityGraph(attributePaths = "tags")
-    Optional<Task> findByIdAndUser(Long id, User user);
+    Optional<Task> findByIdAndUser(UUID id, User user);
 }

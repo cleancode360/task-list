@@ -12,10 +12,10 @@ import { apiFetch, auth } from "../api/client";
 type Props = NativeStackScreenProps<TaskStackParamList, "TaskList">;
 
 interface TaskSummary {
-  id: number;
+  id: string;
   title: string;
   completed: boolean;
-  tags: { id: number; name: string }[];
+  tags: { id: string; name: string }[];
   _links: Record<string, { href: string }>;
 }
 

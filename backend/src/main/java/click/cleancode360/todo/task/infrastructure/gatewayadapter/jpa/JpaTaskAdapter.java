@@ -12,6 +12,7 @@ import click.cleancode360.todo.task.domain.entity.Task;
 import click.cleancode360.todo.task.domain.gateway.TaskGateway;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +34,7 @@ public class JpaTaskAdapter implements TaskGateway {
     }
 
     @Override
-    public Task getById(Long id, User user) {
+    public Task getById(UUID id, User user) {
         return queryLogger.queryAndLog("findByIdAndUser", () -> jpaRepository.findByIdAndUser(id, user))
             .orElseThrow(() -> new ServletResponseException(404, "Task not found: " + id));
     }
@@ -49,7 +50,7 @@ public class JpaTaskAdapter implements TaskGateway {
     }
 
     @Override
-    public Task update(Long id, String title, String description, Boolean completed,
+    public Task update(UUID id, String title, String description, Boolean completed,
                        List<String> tagNames, User user) {
         Task task = getById(id, user);
         if (title != null) {
@@ -71,14 +72,14 @@ public class JpaTaskAdapter implements TaskGateway {
     }
 
     @Override
-    public Task toggle(Long id, User user) {
+    public Task toggle(UUID id, User user) {
         Task task = getById(id, user);
         task.setCompleted(!task.isCompleted());
         return queryLogger.queryAndLog("save", () -> jpaRepository.save(task));
     }
 
     @Override
-    public void delete(Long id, User user) {
+    public void delete(UUID id, User user) {
         Task task = getById(id, user);
         queryLogger.queryAndLog("delete", () -> {
             jpaRepository.delete(task);
@@ -87,7 +88,7 @@ public class JpaTaskAdapter implements TaskGateway {
     }
 
     @Override
-    public Task addTag(Long taskId, Long tagId, User user) {
+    public Task addTag(UUID taskId, UUID tagId, User user) {
         Task task = getById(taskId, user);
         Tag tag = tagGateway.findByIdAndUser(tagId, user)
             .orElseThrow(() -> new ServletResponseException(404, "Tag not found: " + tagId));
@@ -96,7 +97,7 @@ public class JpaTaskAdapter implements TaskGateway {
     }
 
     @Override
-    public Task removeTag(Long taskId, Long tagId, User user) {
+    public Task removeTag(UUID taskId, UUID tagId, User user) {
         Task task = getById(taskId, user);
         Tag tag = tagGateway.findByIdAndUser(tagId, user)
             .orElseThrow(() -> new ServletResponseException(404, "Tag not found: " + tagId));

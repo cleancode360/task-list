@@ -18,7 +18,7 @@ export type MainTabParamList = {
 
 export type TaskStackParamList = {
   TaskList: undefined;
-  TaskDetail: { id: number };
+  TaskDetail: { id: string };
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();

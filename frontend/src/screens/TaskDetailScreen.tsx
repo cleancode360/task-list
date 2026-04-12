@@ -12,13 +12,13 @@ import { apiFetch } from "../api/client";
 type Props = NativeStackScreenProps<TaskStackParamList, "TaskDetail">;
 
 interface TaskData {
-  id: number;
+  id: string;
   title: string;
   description: string;
   completed: boolean;
   createdAt: string;
   updatedAt: string;
-  tags: { id: number; name: string }[];
+  tags: { id: string; name: string }[];
   _links: Record<string, { href: string }>;
 }
 

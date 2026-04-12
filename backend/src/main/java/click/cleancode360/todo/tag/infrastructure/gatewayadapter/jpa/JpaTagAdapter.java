@@ -9,6 +9,7 @@ import click.cleancode360.todo.shared.pagination.infrastructure.gatewayadapter.s
 import click.cleancode360.todo.tag.domain.entity.Tag;
 import click.cleancode360.todo.tag.domain.gateway.TagGateway;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +30,7 @@ public class JpaTagAdapter implements TagGateway {
     }
 
     @Override
-    public Tag getById(Long id, User user) {
+    public Tag getById(UUID id, User user) {
         return queryLogger.queryAndLog("findByIdAndUser", () -> jpaRepository.findByIdAndUser(id, user))
             .orElseThrow(() -> new ServletResponseException(404, "Tag not found: " + id));
     }
@@ -45,7 +46,7 @@ public class JpaTagAdapter implements TagGateway {
     }
 
     @Override
-    public Tag update(Long id, String name, User user) {
+    public Tag update(UUID id, String name, User user) {
         Tag tag = getById(id, user);
         findByNameIgnoreCaseAndUser(name, user)
             .filter(existing -> !existing.getId().equals(id))
@@ -57,7 +58,7 @@ public class JpaTagAdapter implements TagGateway {
     }
 
     @Override
-    public void delete(Long id, User user) {
+    public void delete(UUID id, User user) {
         Tag tag = getById(id, user);
         for (var task : tag.getTasks()) {
             task.removeTag(tag);
@@ -70,7 +71,7 @@ public class JpaTagAdapter implements TagGateway {
     }
 
     @Override
-    public Optional<Tag> findByIdAndUser(Long id, User user) {
+    public Optional<Tag> findByIdAndUser(UUID id, User user) {
         return queryLogger.queryAndLog("findByIdAndUser", () -> jpaRepository.findByIdAndUser(id, user));
     }
 

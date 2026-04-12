@@ -7,6 +7,7 @@ import click.cleancode360.todo.shared.pagination.domain.entity.PageResult;
 import click.cleancode360.todo.shared.pagination.infrastructure.gatewayadapter.spring.SpringPageMapper;
 import click.cleancode360.todo.tag.domain.entity.Tag;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -43,7 +44,7 @@ public class RESTTagController {
     }
 
     @GetMapping("/{id}")
-    public EntityModel<?> getTag(@PathVariable Long id,
+    public EntityModel<?> getTag(@PathVariable UUID id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
         return tagResponseAssembler.toModel(tagGateway.getById(id, user));
@@ -58,14 +59,14 @@ public class RESTTagController {
     }
 
     @PutMapping("/{id}")
-    public EntityModel<?> updateTag(@PathVariable Long id, @Valid @RequestBody TagUpdateRequest request,
+    public EntityModel<?> updateTag(@PathVariable UUID id, @Valid @RequestBody TagUpdateRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
         return tagResponseAssembler.toModel(tagGateway.update(id, request.name(), user));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTag(@PathVariable Long id,
+    public ResponseEntity<Void> deleteTag(@PathVariable UUID id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
         tagGateway.delete(id, user);
