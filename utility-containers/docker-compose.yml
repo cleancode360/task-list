@@ -3,10 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.aws-kubectl
-    environment:
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
-      - AWS_DEFAULT_REGION
+    env_file: .env
     ports:
       - "5005:5005"
     volumes:
@@ -17,10 +14,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.terraform
-    environment:
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
-      - AWS_DEFAULT_REGION
+    env_file: .env
     volumes:
       - ../infra:/infra
 
