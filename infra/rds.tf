@@ -27,7 +27,7 @@ module "rds" {
   identifier = "${local.name_prefix}-postgres"
 
   engine               = "postgres"
-  engine_version       = "16.3"
+  engine_version       = "16.6"
   family               = "postgres16"
   major_engine_version = "16"
   instance_class       = "db.t4g.micro"
