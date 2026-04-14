@@ -10,14 +10,6 @@ services:
       - ..:/workspace
       - kube-config:/root/.kube
 
-  terraform:
-    build:
-      context: .
-      dockerfile: Dockerfile.terraform
-    env_file: .env
-    volumes:
-      - ../infra:/infra
-
   maven:
     image: maven:3.9.8-eclipse-temurin-17
     working_dir: /workspace/backend

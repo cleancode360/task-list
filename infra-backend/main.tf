@@ -61,3 +61,27 @@ resource "aws_dynamodb_table" "terraform_locks" {
     type = "S"
   }
 }
+
+resource "aws_ssm_parameter" "terraform_state_bucket" {
+  name  = "/${var.ssm_param_prefix}/terraform-state-bucket"
+  type  = "String"
+  value = aws_s3_bucket.terraform_state.bucket
+}
+
+resource "aws_ssm_parameter" "terraform_lock_table" {
+  name  = "/${var.ssm_param_prefix}/terraform-lock-table"
+  type  = "String"
+  value = aws_dynamodb_table.terraform_locks.name
+}
+
+resource "aws_ssm_parameter" "terraform_state_key" {
+  name  = "/${var.ssm_param_prefix}/terraform-state-key"
+  type  = "String"
+  value = "infra/${var.environment}/terraform.tfstate"
+}
+
+resource "aws_ssm_parameter" "terraform_state_region" {
+  name  = "/${var.ssm_param_prefix}/terraform-state-region"
+  type  = "String"
+  value = var.aws_region
+}

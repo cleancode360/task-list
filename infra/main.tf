@@ -16,7 +16,7 @@ terraform {
     }
   }
 
-  # Backend config is supplied by `scripts/init-backend.sh`.
+  # Backend config is supplied by `backend.tfbackend`.
   backend "s3" {}
 }
 

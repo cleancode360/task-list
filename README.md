@@ -116,6 +116,8 @@ cd infra
 cd ../infra-backend
 export TF_VAR_project_name="todo"
 export TF_VAR_aws_region="us-east-1"
+export TF_VAR_environment="dev"
+export TF_VAR_ssm_param_prefix="todo-dev"
 terraform init
 terraform apply -auto-approve
 cd ../infra
@@ -145,14 +147,14 @@ export TF_VAR_alert_email=""
 export TF_VAR_db_password="change-me"
 ```
 
-5. Migrate any existing local state into the shared backend:
+5. Apply infrastructure (`backend.tfbackend` contains tokens for CI; pass config inline locally):
 ```bash
-MIGRATE_STATE=true sh scripts/init-backend.sh
-```
-
-6. Apply infrastructure:
-```bash
-sh scripts/init-backend.sh
+terraform init \
+  -backend-config="bucket=todo-terraform-state-<account-id>-us-east-1" \
+  -backend-config="key=infra/dev/terraform.tfstate" \
+  -backend-config="region=us-east-1" \
+  -backend-config="dynamodb_table=todo-terraform-locks" \
+  -backend-config="encrypt=true"
 terraform plan
 terraform apply
 ```

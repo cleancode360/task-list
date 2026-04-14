@@ -1,0 +1,5 @@
+bucket         = "#{TF_STATE_BUCKET}#"
+key            = "#{TF_STATE_KEY}#"
+region         = "#{TF_STATE_REGION}#"
+dynamodb_table = "#{TF_LOCK_TABLE}#"
+encrypt        = true

@@ -100,7 +100,6 @@ This bootstrap expects the shared Terraform backend to exist already. Create it 
 
 - Docker
 - AWS account with admin-level credentials (see below)
-- Terraform `>= 1.6` for the one-time backend bootstrap and state migration
 - A populated `infra/terraform.tfvars` file (see below)
 
 ### AWS Account Setup
@@ -128,13 +127,15 @@ This file is gitignored because it contains sensitive values.
 
 ### Create Shared Terraform Backend
 
-Create the remote state bucket and lock table once:
+Create the remote state bucket, lock table, and SSM parameters once:
 
 ```bash
 cd ../infra-backend
 
 export TF_VAR_project_name="todo"
 export TF_VAR_aws_region="us-east-1"
+export TF_VAR_environment="dev"
+export TF_VAR_ssm_param_prefix="todo-dev"
 
 terraform init
 terraform apply -auto-approve
@@ -144,46 +145,21 @@ This creates:
 
 - S3 bucket: `<project>-terraform-state-<account-id>-<region>`
 - DynamoDB table: `<project>-terraform-locks`
+- SSM parameters used by GitHub Actions to resolve `infra/backend.tfbackend` tokens at runtime
 
-### Migrate Existing Local State
+### Local Terraform Init
 
-If `infra/terraform.tfstate` already exists locally, migrate it into the remote backend before using GitHub Actions:
-
-```bash
-cd ../infra
-
-export TF_VAR_project_name="todo"
-export TF_VAR_environment="dev"
-export TF_VAR_aws_region="us-east-1"
-export AWS_DEFAULT_REGION="us-east-1"
-
-MIGRATE_STATE=true sh scripts/init-backend.sh
-```
-
-After migration, `terraform plan` in `infra/` and GitHub Actions will both use the same shared state.
-
-### Bootstrap Usage
+`infra/backend.tfbackend` contains `#{...}#` tokens resolved by GitHub Actions at runtime. For local usage, pass the backend config inline:
 
 ```bash
-cd utility-containers
+cd infra
 
-export AWS_ACCESS_KEY_ID=...
-export AWS_SECRET_ACCESS_KEY=...
-export AWS_DEFAULT_REGION=us-east-1
-
-docker compose up terraform --build
-```
-
-The container bind-mounts `../infra`, configures the shared backend, and runs `terraform apply -auto-approve`, then exits.
-
-### After Bootstrap
-
-Set the GitHub Actions variable so the CI/CD workflows can authenticate with AWS:
-
-```bash
-cd ../infra
-gh variable set AWS_GITHUB_ACTIONS_ROLE_ARN \
-  --body "$(terraform output -raw github_actions_role_arn)"
+terraform init \
+  -backend-config="bucket=todo-terraform-state-<account-id>-us-east-1" \
+  -backend-config="key=infra/dev/terraform.tfstate" \
+  -backend-config="region=us-east-1" \
+  -backend-config="dynamodb_table=todo-terraform-locks" \
+  -backend-config="encrypt=true"
 ```
 
 ### Tear Down / Recreate
@@ -193,19 +169,9 @@ The EKS control plane costs ~$73/month and cannot be paused. To avoid charges wh
 #### Destroy
 
 ```bash
-cd utility-containers
+cd infra
 
-export AWS_ACCESS_KEY_ID=...
-export AWS_SECRET_ACCESS_KEY=...
-export AWS_DEFAULT_REGION=us-east-1
-
-docker compose run --rm terraform sh -c "terraform init && terraform destroy -auto-approve"
-```
-
-If the backend has already been created, use:
-
-```bash
-docker compose run --rm terraform sh -c "sh scripts/init-backend.sh && terraform destroy -auto-approve"
+terraform destroy -auto-approve
 ```
 
 #### Recreate
@@ -213,13 +179,13 @@ docker compose run --rm terraform sh -c "sh scripts/init-backend.sh && terraform
 Run the normal bootstrap again:
 
 ```bash
-docker compose up terraform --build
+terraform apply -auto-approve -target=module.vpc -target=module.eks
+terraform apply -auto-approve
 ```
 
 After recreating, redeploy the backend so that K8s workloads, the ALB, and the SSM backend URL are restored:
 
 ```bash
-cd ../infra
 gh variable set AWS_GITHUB_ACTIONS_ROLE_ARN \
   --body "$(terraform output -raw github_actions_role_arn)"
 ```

@@ -1,6 +1,6 @@
 # Infra Backend
 
-Creates the shared Terraform backend used by `infra/` and GitHub Actions.
+Creates the shared Terraform backend used by `infra/` and GitHub Actions, and writes the backend configuration to SSM Parameter Store.
 
 ## Usage
 
@@ -9,6 +9,8 @@ cd infra-backend
 
 export TF_VAR_project_name="todo"
 export TF_VAR_aws_region="us-east-1"
+export TF_VAR_environment="dev"
+export TF_VAR_ssm_param_prefix="todo-dev"
 
 terraform init
 terraform apply -auto-approve
@@ -18,16 +20,4 @@ This creates:
 
 - S3 bucket: `<project>-terraform-state-<account-id>-<region>`
 - DynamoDB table: `<project>-terraform-locks`
-
-After creating the backend, migrate any existing local `infra/terraform.tfstate`:
-
-```bash
-cd ../infra
-
-export TF_VAR_project_name="todo"
-export TF_VAR_environment="dev"
-export TF_VAR_aws_region="us-east-1"
-export AWS_DEFAULT_REGION="us-east-1"
-
-MIGRATE_STATE=true sh scripts/init-backend.sh
-```
+- SSM parameters under `/<ssm_param_prefix>/`: `terraform-state-bucket`, `terraform-lock-table`, `terraform-state-key`, `terraform-state-region`
