@@ -26,7 +26,7 @@ module "eks" {
   version = "~> 20.24"
 
   cluster_name    = "${local.name_prefix}-eks"
-  cluster_version = "1.31"
+  cluster_version = "1.32"
 
   cluster_endpoint_public_access  = var.eks_public_endpoint
   cluster_endpoint_private_access = true
