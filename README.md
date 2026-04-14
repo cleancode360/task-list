@@ -319,6 +319,7 @@ Set these repository variables/secrets:
   - `ENVIRONMENT`
   - `SSM_PARAM_PREFIX`
   - `COGNITO_DOMAIN_PREFIX` (globally unique prefix for the Cognito hosted UI domain)
+  - `SPRING_JPA_HIBERNATE_DDL_AUTO`
 - Secrets:
   - `DB_USERNAME`
   - `DB_PASSWORD`
