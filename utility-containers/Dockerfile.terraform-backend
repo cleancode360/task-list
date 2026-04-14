@@ -1,0 +1,5 @@
+FROM hashicorp/terraform:1.12
+
+WORKDIR /infra-backend
+
+ENTRYPOINT ["sh", "-c", "terraform init && terraform apply -auto-approve"]
