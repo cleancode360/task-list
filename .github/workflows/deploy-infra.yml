@@ -8,11 +8,6 @@ on:
       - "infra/**"
       - ".github/workflows/deploy-infra.yml"
   workflow_dispatch:
-    inputs:
-      destroy:
-        description: "Destroy all infrastructure (cannot be undone)"
-        type: boolean
-        default: true
 
 permissions:
   id-token: write
@@ -20,6 +15,7 @@ permissions:
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
+  DESTROY: "true"
 
 jobs:
   terraform:
@@ -49,6 +45,7 @@ jobs:
         with:
           role-to-assume: ${{ vars.AWS_GITHUB_ACTIONS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -85,11 +82,11 @@ jobs:
         run: terraform init -backend-config=backend.tfbackend
 
       - name: Terraform Validate
-        if: ${{ !inputs.destroy }}
+        if: env.DESTROY != 'true'
         run: terraform validate
 
       - name: Terraform Plan
-        if: ${{ !inputs.destroy }}
+        if: env.DESTROY != 'true'
         id: plan
         run: |
           terraform plan -out=tfplan -detailed-exitcode || exit_code=$?
@@ -102,9 +99,27 @@ jobs:
           fi
 
       - name: Terraform Apply
-        if: ${{ !inputs.destroy && steps.plan.outputs.changes == 'true' }}
+        if: env.DESTROY != 'true' && steps.plan.outputs.changes == 'true'
         run: terraform apply -auto-approve tfplan
 
+      - name: Configure RDS for teardown
+        if: env.DESTROY == 'true'
+        run: |
+          echo "TF_VAR_rds_deletion_protection=false" >> "$GITHUB_ENV"
+          echo "TF_VAR_rds_skip_final_snapshot=true" >> "$GITHUB_ENV"
+
+      - name: Terraform apply before destroy
+        if: env.DESTROY == 'true'
+        run: terraform apply -auto-approve
+
+      - name: Refresh AWS credentials before destroy
+        if: env.DESTROY == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
+
       - name: Terraform Destroy
-        if: ${{ inputs.destroy }}
+        if: env.DESTROY == 'true'
         run: terraform destroy -auto-approve
