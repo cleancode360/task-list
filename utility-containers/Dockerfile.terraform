@@ -1,0 +1,5 @@
+FROM hashicorp/terraform:1.12
+
+WORKDIR /workspace
+
+ENTRYPOINT ["sh", "-c"]

@@ -10,10 +10,10 @@ services:
       - ..:/workspace
       - kube-config:/root/.kube
 
-  terraform-backend:
+  terraform-backend-apply:
     build:
       context: .
-      dockerfile: Dockerfile.terraform-backend
+    dockerfile: Dockerfile.terraform
     env_file: .env
     environment:
       TF_VAR_project_name: todo
@@ -21,7 +21,8 @@ services:
       TF_VAR_environment: dev
       TF_VAR_ssm_param_prefix: infra
     volumes:
-      - ../infra-backend:/infra-backend
+      - ../infra-backend:/workspace
+    command: "terraform init && terraform apply -auto-approve"
 
   maven:
     image: maven:3.9.8-eclipse-temurin-17
