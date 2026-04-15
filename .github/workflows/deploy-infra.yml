@@ -85,11 +85,11 @@ jobs:
         run: terraform init -backend-config=backend.tfbackend
 
       - name: Terraform Validate
-        if: inputs.destroy != true
+        if: ${{ !inputs.destroy }}
         run: terraform validate
 
       - name: Terraform Plan
-        if: inputs.destroy != true
+        if: ${{ !inputs.destroy }}
         id: plan
         run: |
           terraform plan -out=tfplan -detailed-exitcode || exit_code=$?
@@ -102,9 +102,9 @@ jobs:
           fi
 
       - name: Terraform Apply
-        if: inputs.destroy != true && steps.plan.outputs.changes == 'true'
+        if: ${{ !inputs.destroy && steps.plan.outputs.changes == 'true' }}
         run: terraform apply -auto-approve tfplan
 
       - name: Terraform Destroy
-        if: inputs.destroy == true
+        if: ${{ inputs.destroy }}
         run: terraform destroy -auto-approve
