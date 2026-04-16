@@ -13,7 +13,7 @@ services:
   terraform-backend-apply:
     build:
       context: .
-    dockerfile: Dockerfile.terraform
+      dockerfile: Dockerfile.terraform
     env_file: .env
     environment:
       TF_VAR_project_name: todo
@@ -23,6 +23,36 @@ services:
     volumes:
       - ../infra-backend:/workspace
     command: "terraform init && terraform apply -auto-approve"
+
+  terraform-destroy:
+    build:
+      context: .
+      dockerfile: Dockerfile.terraform
+    env_file: .env
+    entrypoint: ["sh", "-c"]
+    environment:
+      TF_VAR_project_name: todo
+      TF_VAR_aws_region: us-east-1
+      TF_VAR_environment: dev
+      TF_VAR_ssm_param_prefix: infra
+      TF_VAR_k8s_namespace: todo-app
+      TF_VAR_github_repository: cleancode360/task-list
+      TF_VAR_db_password: unused
+      TF_VAR_cognito_domain_prefix: todo-dev-auth
+      TF_VAR_rds_deletion_protection: "false"
+      TF_VAR_rds_skip_final_snapshot: "true"
+    volumes:
+      - ../infra:/workspace
+    command:
+      - >-
+        terraform init
+        -backend-config=bucket=todo-terraform-state-566946613693-us-east-1
+        -backend-config=key=infra/dev/terraform.tfstate
+        -backend-config=region=us-east-1
+        -backend-config=dynamodb_table=todo-terraform-locks
+        -backend-config=encrypt=true
+        && terraform apply -auto-approve
+        && terraform destroy -auto-approve
 
   maven:
     image: maven:3.9.8-eclipse-temurin-17

@@ -2,8 +2,6 @@
 
 Full-stack to-do list app with a Spring Boot HATEOAS API, an Expo-based frontend, local Docker support, and AWS deployment assets for EKS Fargate + RDS + Amplify.
 
-**Live environment:** https://todo-branch.dh7xfznvsgaah.amplifyapp.com/
-
 ## Stack
 - Backend: Java 17, Spring Boot 3, Maven, Lombok, Redis, Logback SLF4J, Micrometer Tracing Bridge OTel
 PostgreSQL
